@@ -272,37 +272,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* --------------------------
-     *   Intro modal (robust)
+     *   Intro Modal
      * --------------------------- */
-    (() => {
-        const modal = document.getElementById("intro-modal");
-        const closeBtn = document.getElementById("close-intro");
-        if (!modal || !closeBtn) return;
+    const modal = document.getElementById("intro-modal");
+    const closeBtn = document.getElementById("close-intro");
+    if (modal && closeBtn) {
+        modal.classList.remove("hidden");
 
-        // Show once per session (remove this block if you want it every load)
-        if (sessionStorage.getItem("introDismissed") === "1") {
-            modal.classList.add("hidden");
-        } else {
-            modal.classList.remove("hidden");
-        }
 
-        // Primary close handler
         closeBtn.addEventListener("click", () => {
             modal.classList.add("hidden");
             sessionStorage.setItem("introDismissed", "1");
         });
-
-        // Extra safety: delegated listener (works even if the button is re-rendered)
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest("#close-intro");
-            if (!btn) return;
-            modal.classList.add("hidden");
-            sessionStorage.setItem("introDismissed", "1");
-        });
-    })();
-
-
-
+    }
+});
 
 /* --------------------------
  *   Intake Wizard
@@ -388,11 +371,7 @@ function renderIntakeForm(reset = false) {
         <div class="intake-options">${checklistHTML}</div>
         <div class="intake-actions">
         <button onclick="prevIntakeStep()">← Back</button>
-        <button onclick="startDiagnosis()">StartThis tool is for diagnosing a PC that is failing to power on or complete POST.
-
-        The checklist tracks what you’ve already tried, and the diagnostic tool updates your checklist as you go.
-
-        Check what you have done, go through the steps, and the tool will guide you toward the most likely cause.  Diagnosis</button>
+        <button onclick="startDiagnosis()">Start Diagnosis</button>
         </div>
         </div>`;
 
