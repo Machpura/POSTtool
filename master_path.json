@@ -28,7 +28,7 @@
         "No, still nothing": { "next": "psu_test", "markChecklist": "psu_switch_on" }
       },
       "knowledge": {
-        "text": "On the back of your PSU is a small rocker switch. Make sure it’s in the 'I' position, not 'O'.",
+        "text": "On the back of your PSU is a small rocker switch. Make sure it’s in the 'I' position, not 'O'. If your PSU has a 115V/230V selector, ensure it matches your region.",
         "video": ""
       }
     },
@@ -60,7 +60,7 @@
         "No / reseated": { "next": "try_power_on", "markChecklist": "mobo_power_cables" }
       },
       "knowledge": {
-        "text": "Check that the big 24-pin cable is fully inserted in the motherboard. Also check the 8-pin (sometimes 4+4) near the CPU. Push until they click.",
+        "text": "Check that the big 24-pin cable is fully inserted in the motherboard. Also check the 8-pin (sometimes 4+4) near the CPU. Push until they click. Only use the PSU’s own modular cables — never mix brands.",
         "video": ""
       }
     },
@@ -89,11 +89,23 @@
       "id": "power_cycles",
       "question": "System powers on then shuts off within a few seconds. Next step: Check standoffs / shorts under the motherboard.",
       "options": {
-        "Correct standoffs, still failing": { "next": "breadboard_test", "markChecklist": "standoffs_ok" },
+        "Correct standoffs, still failing": { "next": "reset_switch_check", "markChecklist": "standoffs_ok" },
         "Fixed an issue and it now works": { "next": "boot_success", "markChecklist": "standoffs_ok" }
       },
       "knowledge": {
         "text": "Ensure the motherboard is screwed into standoffs, not directly touching the case. Shorts against the case can cause instant shutoff.",
+        "video": ""
+      }
+    },
+    {
+      "id": "reset_switch_check",
+      "question": "Disconnect the RESET SW header (leave only PWR_SW connected). Does it still shut off?",
+      "options": {
+        "Fix: now it stays on": { "next": "boot_success" },
+        "No change": { "next": "breadboard_test" }
+      },
+      "knowledge": {
+        "text": "A stuck or miswired RESET switch causes instant power cycling. Pull the RESET SW plug off the front-panel header to rule it out.",
         "video": ""
       }
     },
@@ -129,7 +141,32 @@
         "Beep codes": { "next": "beep_root" },
         "Debug LEDs": { "next": "led_root" },
         "Debug code display": { "next": "code_root" },
-        "No indicators": { "next": "general_post_root" }
+        "No indicators": { "next": "monitor_check" }
+      }
+    },
+
+    {
+      "id": "monitor_check",
+      "question": "Before we open the case: is the monitor/cable/input correct and plugged into the right port?",
+      "options": {
+        "Fixed it (I now see a display)": { "next": "boot_success" },
+        "No change": { "next": "usb_isolation" }
+      },
+      "knowledge": {
+        "text": "1) Power the monitor on and set the correct input (HDMI/DP). 2) Try a second cable/port and, if possible, a second display. 3) If a graphics card is installed, plug the cable into the GPU outputs — not the motherboard. 4) Avoid adapters/risers for this test; some DP/HDMI adapters and riser cables are flaky.",
+        "video": ""
+      }
+    },
+    {
+      "id": "usb_isolation",
+      "question": "Unplug ALL USB/peripherals (rear and front). Leave only power, monitor, and keyboard. Any change?",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success" },
+        "No change": { "next": "general_post_root" }
+      },
+      "knowledge": {
+        "text": "Faulty USB devices, dongles, or a shorted front-panel USB header can block POST. Unplug everything: USB hubs, Wi-Fi dongles, external drives, card readers, printers, etc.",
+        "video": ""
       }
     },
 
@@ -170,17 +207,17 @@
       }
     },
     {
-  "id": "ram_reseat",
-  "question": "Reseat all RAM sticks. Does the system POST?",
-  "options": {
-    "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_reseat" },
-    "No, still no display": { "next": "general_post_root", "markChecklist": "ram_reseat" }
-  },
-  "knowledge": {
-    "text": "Remove all RAM sticks. Reinsert them firmly until the latches click. Try again.",
-    "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
-  }
-},
+      "id": "ram_reseat",
+      "question": "Reseat all RAM sticks. Does the system POST?",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_reseat" },
+        "No, still no display": { "next": "general_post_root", "markChecklist": "ram_reseat" }
+      },
+      "knowledge": {
+        "text": "Remove all RAM sticks. Reinsert them firmly until the latches click. Try again.",
+        "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
+      }
+    },
     {
       "id": "code_root",
       "result": "Consult motherboard manual for debug code meanings.",
@@ -237,10 +274,22 @@
       "question": "Clear CMOS (reset BIOS settings). Does the system POST afterward?",
       "options": {
         "Yes, now POSTs": { "next": "boot_success", "markChecklist": "cmos_reset" },
-        "No, still nothing": { "next": "cpu_eps_check", "markChecklist": "cmos_reset" }
+        "No, still nothing": { "next": "mem_training_wait", "markChecklist": "cmos_reset" }
       },
       "knowledge": {
         "text": "Turn off PSU. Press the case power button to discharge. Remove the round CMOS battery for 1–2 minutes, or move the jumper, or press the CLR_CMOS button (see manual). Replace and power on.",
+        "video": ""
+      }
+    },
+    {
+      "id": "mem_training_wait",
+      "question": "After clearing CMOS, did you let it sit powered on for 3–5 minutes for memory training? It may reboot several times.",
+      "options": {
+        "It POSTed after waiting": { "next": "boot_success" },
+        "Yes, waited — still nothing": { "next": "cpu_eps_check" }
+      },
+      "knowledge": {
+        "text": "AM4/AM5 and DDR5 boards often take a few minutes to train RAM after a CMOS clear. Don’t power off during this period.",
         "video": ""
       }
     },
@@ -249,11 +298,24 @@
       "id": "cpu_eps_check",
       "question": "Check CPU power cables (EPS 4/8-pin near the CPU). Are they fully seated?",
       "options": {
-        "Yes, cables are good": { "next": "cpu_reseat", "markChecklist": "eps_cables" },
-        "No, reseated cables": { "next": "cpu_reseat", "markChecklist": "eps_cables" }
+        "Yes, cables are good": { "next": "bios_cpu_support", "markChecklist": "eps_cables" },
+        "No, reseated cables": { "next": "bios_cpu_support", "markChecklist": "eps_cables" }
       },
       "knowledge": {
-        "text": "Ensure the CPU’s 8-pin (sometimes 4+4) connector is firmly locked into the socket near the CPU. Without this, CPU won’t run.",
+        "text": "Ensure the CPU’s 8-pin (sometimes 4+4) connector is firmly locked into the socket near the CPU. Without this, CPU won’t run. EPS and PCIe 8-pins look similar — don’t mix them.",
+        "video": ""
+      }
+    },
+    {
+      "id": "bios_cpu_support",
+      "question": "Could your CPU require a newer BIOS for this motherboard? Does your board support BIOS Flashback?",
+      "options": {
+        "I updated BIOS/Flashback and it POSTs": { "next": "boot_success" },
+        "I updated BIOS — still nothing": { "next": "cpu_reseat" },
+        "Not sure / no Flashback": { "next": "cpu_reseat" }
+      },
+      "knowledge": {
+        "text": "Newer CPUs on older boards may need a BIOS update before video output works. If your board has BIOS Flashback, you can update without a CPU/GPU. Check the manual for the exact port/file name.",
         "video": ""
       }
     },

@@ -7,6 +7,30 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- Explanation Popup -->
+  <div id="intro-modal" class="modal">
+    <div class="modal-content">
+      <h2>Welcome</h2>
+      <p>
+        This tool is for diagnosing a PC that is failing to power on or complete POST.
+        <br><br>
+        The <strong>checklist</strong> tracks what you’ve already tried, and the
+        <strong>diagnostic tool</strong> updates your checklist as you go.
+        <br><br>
+        Check what you have done, go through the steps, and the tool will guide you
+        toward the most likely cause.
+      </p>
+<button
+  id="close-intro"
+  type="button"
+  onclick="document.getElementById('intro-modal').classList.add('hidden'); sessionStorage.setItem('introDismissed','1');"
+>
+  I Understand
+</button>
+    </div>
+  </div>
+
   <div id="layout">
     <!-- Sidebar -->
     <div id="sidebar">
@@ -22,7 +46,7 @@
       <div id="question-container"></div>
       <div id="options-container"></div>
 
-      <!-- Knowledge Base  -->
+      <!-- Knowledge Base -->
       <div id="knowledge-base"></div>
     </div>
 
