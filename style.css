@@ -7,8 +7,9 @@ body {
     color: #333;
     margin: 0;
     padding: 0;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;          /* allow taller than viewport */
+    overflow-x: hidden;         /* no sideways scroll */
+    overflow-y: auto;           /* allow vertical scroll */
 }
 
 /* Dark mode */
@@ -22,8 +23,9 @@ body.dark-mode {
  * ------------------------- */
 #layout {
 display: flex;
-height: 100vh;
-overflow: hidden;
+height: 100%;               /* fill parent but allow growth */
+min-height: 100vh;
+overflow: hidden;           /* no double scrollbars */
 gap: 20px;
 padding: 20px;
 box-sizing: border-box;
@@ -251,17 +253,13 @@ body.dark-mode .intake-options label:hover {
  *   Responsive Layout
  * ------------------------- */
 @media (max-width: 1024px) {
-    body, #layout {
-        height: auto;
-        overflow-x: hidden;  /* prevent horizontal scroll */
-    }
-
     #layout {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
     gap: 15px;
     padding: 10px;
-    box-sizing: border-box;
-    width: 100%;
     }
 
     #sidebar, #checklist, #app {
@@ -274,17 +272,13 @@ body.dark-mode .intake-options label:hover {
 }
 
 @media (max-width: 768px) {
-    body, #layout {
-        height: auto;
-        overflow-x: hidden;  /* prevent horizontal scroll */
-    }
-
     #layout {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
     padding: 10px;
     gap: 10px;
-    width: 100%;
-    box-sizing: border-box;
     }
 
     #sidebar, #checklist, #app {
@@ -292,7 +286,7 @@ body.dark-mode .intake-options label:hover {
     max-width: 100%;
     flex: unset;
     max-height: none;
-    overflow-y: visible;
+    overflow: visible;
     box-sizing: border-box;
     }
 
@@ -311,10 +305,6 @@ body.dark-mode .intake-options label:hover {
 }
 
 @media (max-width: 480px) {
-    body, #layout {
-        overflow-x: hidden; /* extra guard */
-    }
-
     #sidebar h2, #checklist h2 {
     font-size: 1em;
     }
