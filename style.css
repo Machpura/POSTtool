@@ -48,7 +48,7 @@ body.dark-mode #checklist {
 }
 
 /* -------------------------
- *   Explanation popup
+ *   Modal Styling
  * ------------------------- */
 .modal {
     display: flex;
@@ -60,11 +60,11 @@ body.dark-mode #checklist {
     height: 100%;
     background: rgba(0, 0, 0, 0.7);
     z-index: 9999;
-    pointer-events: none;   /* overlay itself ignores clicks */
+    pointer-events: none;
 }
 
 .modal.hidden {
-    display: none; /* JS toggles this class */
+    display: none;
 }
 
 .modal-content {
@@ -77,9 +77,9 @@ body.dark-mode #checklist {
     text-align: center;
     box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     animation: fadeIn 0.3s ease;
-        pointer-events: auto; /* allow clicks to pass through */
-        position: relative;   /* not strictly needed but helps stacking */
-        z-index: 10000;
+    pointer-events: auto;
+    position: relative;
+    z-index: 10000;
 }
 
 body.dark-mode .modal-content {
@@ -103,6 +103,23 @@ body.dark-mode .modal-content {
 
 .modal-content button:hover {
     background: #005fa3;
+}
+
+.modal-content textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.9em;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+body.dark-mode .modal-content textarea {
+    background: #2a2a2a;
+    color: #f1f1f1;
+    border-color: #555;
 }
 
 /* -------------------------

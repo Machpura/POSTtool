@@ -578,3 +578,192 @@ function syncIntakeToChecklist() {
         });
     });
 }
+
+/* --------------------------
+ *   Export/Import Functions
+ * --------------------------- */
+function exportDiagnosticData() {
+    const exportData = {
+        intake: intakeData,
+        checklist: getChecklistState(),
+        path: historyStack,
+        current: currentNode?.id || null
+    };
+
+    // Convert to base64 string
+    const jsonStr = JSON.stringify(exportData);
+    const base64 = btoa(jsonStr);
+
+    // Generate human-readable report
+    const report = generateReport(exportData, base64);
+
+    // Store report globally for download function
+    window.currentReport = report;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(report).then(() => {
+        showExportModal();
+    }).catch(() => {
+        // Fallback if clipboard API fails
+        const textarea = document.createElement('textarea');
+        textarea.value = report;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showExportModal();
+    });
+}
+
+function showExportModal() {
+    const modal = document.getElementById('export-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeExportModal() {
+    const modal = document.getElementById('export-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function downloadReport() {
+    if (!window.currentReport) return;
+
+    const blob = new Blob([window.currentReport], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `POST-diagnostic-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    closeExportModal();
+}
+
+function generateReport(data, resumeCode) {
+    let report = `=== POST DIAGNOSTIC REPORT ===\n`;
+    report += `Generated: ${new Date().toLocaleString()}\n\n`;
+
+    report += `SYSTEM INFO:\n`;
+    const historyLabels = {
+        'new_build': 'New build (never worked)',
+        'hardware_change': 'Recent hardware change',
+        'was_working': 'Was working, now isn\'t'
+    };
+    report += `- History: ${historyLabels[data.intake.history] || data.intake.history}\n`;
+
+    if (data.intake.hardwareChanged?.length > 0) {
+        report += `- Hardware Changed: ${data.intake.hardwareChanged.join(', ')}\n`;
+    }
+
+    report += `\nSYMPTOMS:\n`;
+    data.intake.symptoms.forEach(s => {
+        report += `- ${s.replace(/_/g, ' ')}\n`;
+    });
+
+    report += `\nDEBUG FEATURES:\n- ${data.intake.debug}\n`;
+
+    report += `\nGRAPHICS:\n`;
+    data.intake.graphics.forEach(g => {
+        report += `- ${g}\n`;
+    });
+
+    report += `\nSTEPS COMPLETED (${data.checklist.length}):\n`;
+    if (data.checklist.length === 0) {
+        report += `(none)\n`;
+    } else {
+        data.checklist.forEach(step => {
+            const item = Object.values(checklistData).flat().find(s => s.id === step);
+            if (item) report += `✓ ${item.text}\n`;
+        });
+    }
+
+    report += `\nDIAGNOSTIC PATH (${data.path.length + 1} steps):\n`;
+    if (data.path.length === 0) {
+        report += `1. Started at: ${data.current}\n`;
+    } else {
+        data.path.forEach((nodeId, i) => {
+            report += `${i + 1}. ${nodeId}\n`;
+        });
+        report += `→ Currently at: ${data.current}\n`;
+    }
+
+    report += `\n=== RESUME CODE ===\n`;
+    report += resumeCode;
+    report += `\n\nTo resume this diagnostic session, click the "Import/Resume" button and paste this code.`;
+
+    return report;
+}
+
+function showImportModal() {
+    const modal = document.getElementById('import-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeImportModal() {
+    const modal = document.getElementById('import-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.getElementById('import-code-input').value = '';
+    }
+}
+
+function importDiagnosticData() {
+    const codeInput = document.getElementById('import-code-input');
+    const base64Code = codeInput.value.trim();
+
+    if (!base64Code) {
+        alert('Please paste a resume code.');
+        return;
+    }
+
+    try {
+        const jsonStr = atob(base64Code);
+        const data = JSON.parse(jsonStr);
+
+        // Restore intake data
+        intakeData = data.intake;
+
+        // Restore checklist state
+        data.checklist.forEach(stepId => markChecklistDone(stepId));
+
+        // Restore diagnostic position
+        historyStack = data.path;
+
+        // Load tree at current position
+        fetch("master_path.json")
+        .then(res => res.json())
+        .then(treeData => {
+            nodes = treeData.nodes.reduce((map, node) => {
+                map[node.id] = node;
+                return map;
+            }, {});
+
+            currentNode = nodes[data.current];
+            startNode = data.current;
+            renderNode();
+
+            closeImportModal();
+            alert('Diagnostic session restored successfully!');
+
+            // Clear intake form since we're resuming
+            const intake = document.getElementById("intake-form");
+            if (intake) intake.innerHTML = "";
+        })
+        .catch(err => {
+            console.error("Failed to load tree:", err);
+            alert('Error loading diagnostic tree.');
+        });
+
+    } catch(e) {
+        console.error('Import error:', e);
+        alert('Invalid resume code. Please check the code and try again.');
+    }
+}
