@@ -55,6 +55,23 @@ function renderNode() {
         }
     }
 
+    // Filter GPU options based on intake data
+    if (currentNode.options && intakeData.graphics) {
+        const filteredOptions = {};
+        for (const [optionText, optionData] of Object.entries(currentNode.options)) {
+            // Skip GPU reseat/power options if no dedicated GPU
+            if ((optionData.requiresGPU === 'dedicated') && !intakeData.graphics.includes('dedicated')) {
+                continue;
+            }
+            // Skip iGPU test if no integrated graphics
+            if ((optionData.requiresGPU === 'integrated') && !intakeData.graphics.includes('integrated')) {
+                continue;
+            }
+            filteredOptions[optionText] = optionData;
+        }
+        currentNode.options = filteredOptions;
+    }
+
     const questionContainer = document.getElementById("question-container");
     const optionsContainer = document.getElementById("options-container");
     const resultContainer = document.getElementById("result-container");
@@ -163,18 +180,22 @@ const checklistData = {
         { id: "psu_switch_on", text: "Verify PSU rear switch is ON" },
         { id: "psu_test", text: "Perform PSU paperclip/self-test" },
         { id: "psu_known_good", text: "Try a known-good PSU" },
-        { id: "mobo_power_cables", text: "Verify 24-pin ATX and 8-pin EPS connectors" },
+        { id: "mobo_24pin_seated", text: "Verify 24-pin ATX connector is fully seated" },
+        { id: "cpu_8pin_seated", text: "Verify 8-pin EPS CPU power is fully seated" },
         { id: "pwr_sw_short", text: "Bypass case button (short PWR_SW pins)" }
     ],
     Motherboard: [
         { id: "standoffs_ok", text: "Verify correct motherboard standoff placement" },
         { id: "bench_test", text: "Breadboard test outside case (CPU + 1 RAM only)" },
-        { id: "cmos_reset", text: "Clear CMOS (reset BIOS settings)" }
+        { id: "cmos_reset", text: "Clear CMOS (reset BIOS settings)" },
+        { id: "bios_flashback", text: "Update BIOS via Flashback/Q-Flash" }
     ],
     CPU: [
         { id: "eps_cables", text: "Check CPU EPS power cables" },
         { id: "cpu_reseat", text: "Reseat CPU and check socket pins" },
-        { id: "cooler_pressure", text: "Check cooler mounting pressure" }
+        { id: "cooler_mounted", text: "Verify CPU cooler is properly mounted" },
+        { id: "cooler_pressure", text: "Check cooler mounting pressure" },
+        { id: "cpu_compatibility", text: "Verify CPU/motherboard compatibility" }
     ],
     Memory: [
         { id: "ram_reseat", text: "Reseat all RAM sticks" },
@@ -184,11 +205,17 @@ const checklistData = {
     GPU: [
         { id: "gpu_reseat", text: "Reseat GPU in primary PCIe slot" },
         { id: "gpu_power", text: "Verify PCIe power cables" },
+        { id: "gpu_different_slot", text: "Try GPU in different PCIe slot" },
         { id: "igpu_test", text: "Test onboard graphics (if available)" }
     ],
     Storage: [
         { id: "drives_unplugged", text: "Disconnect drives to isolate boot device" },
         { id: "bios_boot_order", text: "Check BIOS boot order" }
+    ],
+    Other: [
+        { id: "monitor_cable_check", text: "Verify monitor cable and input source" },
+        { id: "usb_devices_removed", text: "Remove all USB devices except keyboard" },
+        { id: "reset_switch_disconnected", text: "Disconnect RESET switch header" }
     ]
 };
 
@@ -279,7 +306,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (modal && closeBtn) {
         modal.classList.remove("hidden");
 
-
         closeBtn.addEventListener("click", () => {
             modal.classList.add("hidden");
             sessionStorage.setItem("introDismissed", "1");
@@ -291,7 +317,14 @@ document.addEventListener("DOMContentLoaded", () => {
  *   Intake Wizard
  * --------------------------- */
 let intakeStep = 1;
-let intakeData = { symptoms: [], debug: null, graphics: [], checklist: [] };
+let intakeData = {
+    history: null,
+    hardwareChanged: [],
+    symptoms: [],
+    debug: null,
+    graphics: [],
+    checklist: []
+};
 
 function renderIntakeForm(reset = false) {
     const intake = document.getElementById("intake-form");
@@ -299,7 +332,7 @@ function renderIntakeForm(reset = false) {
 
     if (reset) {
         intakeStep = 1;
-        intakeData = { symptoms: [], debug: null, graphics: [], checklist: [] };
+        intakeData = { history: null, hardwareChanged: [], symptoms: [], debug: null, graphics: [], checklist: [] };
         document.getElementById("question-container").innerHTML = "";
         document.getElementById("options-container").innerHTML = "";
         document.getElementById("result-container").innerHTML = "";
@@ -308,51 +341,99 @@ function renderIntakeForm(reset = false) {
 
     intake.innerHTML = "";
 
+    // Step 1: System History
     if (intakeStep === 1) {
         intake.innerHTML = `
         <div class="intake-step">
-        <h2>System Symptoms – What do you see when you hit the power button?</h2>
+        <h2>System History</h2>
         <div class="intake-options">
-        <label><input type="checkbox" value="no_power"> No power at all (no fans, LEDs, sounds)</label><br>
+        <label><input type="radio" name="history" value="new_build"> New build (never worked)</label><br>
+        <label><input type="radio" name="history" value="hardware_change"> Recent hardware change</label><br>
+        <label><input type="radio" name="history" value="was_working"> Was working, now isn't</label><br>
+        </div>
+        <div id="hardware-change-detail" style="display:none; margin-top:15px; padding-left:20px;">
+        <p><strong>What changed?</strong></p>
+        <label><input type="checkbox" value="CPU/Motherboard"> CPU/Motherboard</label><br>
+        <label><input type="checkbox" value="RAM"> RAM</label><br>
+        <label><input type="checkbox" value="GPU"> GPU</label><br>
+        <label><input type="checkbox" value="PSU"> PSU</label><br>
+        <label><input type="checkbox" value="Storage"> Storage</label><br>
+        </div>
+        <div class="intake-actions">
+        <button onclick="nextIntakeStep()">Next →</button>
+        </div>
+        </div>`;
+
+        // Show hardware change detail if selected
+        const radios = intake.querySelectorAll('input[name="history"]');
+        radios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const detail = document.getElementById('hardware-change-detail');
+                if (e.target.value === 'hardware_change') {
+                    detail.style.display = 'block';
+                } else {
+                    detail.style.display = 'none';
+                }
+            });
+        });
+    }
+    // Step 2: System Symptoms
+    else if (intakeStep === 2) {
+        intake.innerHTML = `
+        <div class="intake-step">
+        <h2>System Symptoms</h2>
+        <p style="font-size:0.9em; color:#666; margin-bottom:10px;">What happens when you press the power button? (Select all that apply)</p>
+        <div class="intake-options">
+        <label><input type="checkbox" value="no_power"> No power at all (no fans, LEDs, or sounds)</label><br>
+        <label><input type="checkbox" value="instant_shutdown"> Powers on, then instant shutdown (less than 1 second)</label><br>
+        <label><input type="checkbox" value="power_cycles"> Powers on, then cycles/reboots repeatedly (3-5+ seconds)</label><br>
         <label><input type="checkbox" value="fans_no_display"> Fans spin / LEDs on, but no display</label><br>
-        <label><input type="checkbox" value="power_cycles"> Turns on briefly, then shuts off / cycles</label><br>
-        <label><input type="checkbox" value="boots_display"> Turns on, stays on, and shows display</label><br>
+        <label><input type="checkbox" value="boots_display"> Boots successfully and shows display</label><br>
         <label><input type="checkbox" value="fans_max"> Fans spin to max immediately</label><br>
         <label><input type="checkbox" value="beep_codes"> Beep codes heard</label><br>
         </div>
         <div class="intake-actions">
+        <button onclick="prevIntakeStep()">← Back</button>
         <button onclick="nextIntakeStep()">Next →</button>
         </div>
         </div>`;
-    } else if (intakeStep === 2) {
+    }
+    // Step 3: Debug Features
+    else if (intakeStep === 3) {
         intake.innerHTML = `
         <div class="intake-step">
-        <h2>Debug Features – What diagnostic features does your board have?</h2>
+        <h2>Debug Features</h2>
+        <p style="font-size:0.9em; color:#666; margin-bottom:10px;">What diagnostic features does your motherboard have?</p>
         <div class="intake-options">
         <label><input type="radio" name="debug" value="none"> None</label><br>
         <label><input type="radio" name="debug" value="beep"> Beep Speaker</label><br>
-        <label><input type="radio" name="debug" value="leds"> Debug LEDs</label><br>
-        <label><input type="radio" name="debug" value="codes"> Debug Code Display</label><br>
+        <label><input type="radio" name="debug" value="leds"> Debug LEDs (CPU, DRAM, VGA, BOOT)</label><br>
+        <label><input type="radio" name="debug" value="codes"> Debug Code Display (hex codes)</label><br>
         </div>
         <div class="intake-actions">
         <button onclick="prevIntakeStep()">← Back</button>
         <button onclick="nextIntakeStep()">Next →</button>
         </div>
         </div>`;
-    } else if (intakeStep === 3) {
+    }
+    // Step 4: Graphics Setup
+    else if (intakeStep === 4) {
         intake.innerHTML = `
         <div class="intake-step">
-        <h2>What graphics setup does this system have? Please check one or both</h2>
+        <h2>Graphics Setup</h2>
+        <p style="font-size:0.9em; color:#666; margin-bottom:10px;">What graphics does this system have? (Select all that apply)</p>
         <div class="intake-options">
         <label><input type="checkbox" value="dedicated"> Dedicated GPU (graphics card)</label><br>
-        <label><input type="checkbox" value="integrated"> Integrated graphics (CPU/iGPU)</label><br>
+        <label><input type="checkbox" value="integrated"> Integrated graphics (CPU/iGPU/APU)</label><br>
         </div>
         <div class="intake-actions">
         <button onclick="prevIntakeStep()">← Back</button>
         <button onclick="nextIntakeStep()">Next →</button>
         </div>
         </div>`;
-    } else if (intakeStep === 4) {
+    }
+    // Step 5: Checklist
+    else if (intakeStep === 5) {
         let checklistHTML = "";
         for (const [category, steps] of Object.entries(checklistData)) {
             checklistHTML += `<h3>${category}</h3>`;
@@ -367,7 +448,8 @@ function renderIntakeForm(reset = false) {
 
         intake.innerHTML = `
         <div class="intake-step">
-        <h2>Please check any diagnostic steps you've performed</h2>
+        <h2>Diagnostic Steps Already Tried</h2>
+        <p style="font-size:0.9em; color:#666; margin-bottom:10px;">Check any steps you've already performed:</p>
         <div class="intake-options">${checklistHTML}</div>
         <div class="intake-actions">
         <button onclick="prevIntakeStep()">← Back</button>
@@ -381,6 +463,21 @@ function renderIntakeForm(reset = false) {
 
 function nextIntakeStep() {
     if (intakeStep === 1) {
+        const selected = document.querySelector('input[name="history"]:checked');
+        if (!selected) {
+            alert("Please select an option before continuing.");
+            return;
+        }
+        intakeData.history = selected.value;
+
+        // Capture hardware change details if applicable
+        if (intakeData.history === 'hardware_change') {
+            const checked = Array.from(
+                document.querySelectorAll('#hardware-change-detail input[type=checkbox]:checked')
+            );
+            intakeData.hardwareChanged = checked.map(cb => cb.value);
+        }
+    } else if (intakeStep === 2) {
         const checked = Array.from(
             document.querySelectorAll("#intake-form input[type=checkbox]:checked")
         );
@@ -389,14 +486,14 @@ function nextIntakeStep() {
             return;
         }
         intakeData.symptoms = checked.map(cb => cb.value);
-    } else if (intakeStep === 2) {
+    } else if (intakeStep === 3) {
         const dbg = document.querySelector("#intake-form input[name=debug]:checked");
         if (!dbg) {
             alert("Please select a debug feature option before continuing.");
             return;
         }
         intakeData.debug = dbg.value;
-    } else if (intakeStep === 3) {
+    } else if (intakeStep === 4) {
         const checked = Array.from(
             document.querySelectorAll("#intake-form input[type=checkbox]:checked")
         );
@@ -422,28 +519,48 @@ function startDiagnosis() {
 
     intakeData.checklist.forEach(doneStep => markChecklistDone(doneStep));
 
+    // Routing logic based on intake data
+    let startNodeId = "no_power_root";
+
+    // Primary routing by symptom
     if (intakeData.symptoms.includes("no_power")) {
-        loadTree("master_path.json", "no_power_root");
-    } else if (intakeData.symptoms.includes("power_cycles")) {
-        loadTree("master_path.json", "power_cycles");
-    } else if (intakeData.symptoms.includes("fans_no_display")) {
-        if (intakeData.debug === "beep") {
-            loadTree("master_path.json", "beep_root");
-        } else if (intakeData.debug === "leds") {
-            loadTree("master_path.json", "led_root");
-        } else if (intakeData.debug === "codes") {
-            loadTree("master_path.json", "code_root");
+        startNodeId = "no_power_root";
+    }
+    else if (intakeData.symptoms.includes("instant_shutdown")) {
+        if (intakeData.history === "new_build") {
+            startNodeId = "instant_shutdown_new_build";
         } else {
-            loadTree("master_path.json", "partial_power");
+            startNodeId = "instant_shutdown_root";
         }
-    } else if (intakeData.symptoms.includes("fans_max")) {
-        loadTree("master_path.json", "cpu_eps_check");
-    } else if (intakeData.symptoms.includes("boots_display")) {
-        loadTree("master_path.json", "boot_success");
-    } else {
-        loadTree("master_path.json", "start_master");
+    }
+    else if (intakeData.symptoms.includes("power_cycles")) {
+        startNodeId = "power_cycles_root";
+    }
+    else if (intakeData.symptoms.includes("fans_max")) {
+        startNodeId = "fans_max_root";
+    }
+    else if (intakeData.symptoms.includes("fans_no_display")) {
+        // Check for debug features first
+        if (intakeData.debug === "beep") {
+            startNodeId = "beep_root";
+        } else if (intakeData.debug === "leds") {
+            startNodeId = "led_root";
+        } else if (intakeData.debug === "codes") {
+            startNodeId = "code_root";
+        } else {
+            // No debug - check build type
+            if (intakeData.history === "new_build") {
+                startNodeId = "no_display_new_build";
+            } else {
+                startNodeId = "no_display_no_debug";
+            }
+        }
+    }
+    else if (intakeData.symptoms.includes("boots_display")) {
+        startNodeId = "boot_success";
     }
 
+    loadTree("master_path.json", startNodeId);
     document.getElementById("intake-form").innerHTML = "";
 }
 

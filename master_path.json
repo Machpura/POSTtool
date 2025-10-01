@@ -2,407 +2,995 @@
   "nodes": [
     {
       "id": "no_power_root",
-      "question": "System shows no signs of life. First step: Check if the wall outlet is working by plugging in another device.",
+      "question": "System shows no signs of life (no fans, LEDs, or sounds). First step: Check if the wall outlet works by plugging in another device.",
       "options": {
-        "Outlet works / confirmed power": { "next": "psu_switch", "markChecklist": "ac_outlet_swap" },
+        "Outlet works": { "next": "psu_switch", "markChecklist": "ac_outlet_swap" },
         "Outlet has no power": { "next": "fix_outlet" }
       },
       "knowledge": {
-        "text": "Plug in a lamp, phone charger, or anything else to the same outlet. If it powers, your outlet is fine. If not, move to another outlet or reset the breaker.",
+        "text": "Plug a lamp, phone charger, or any device into the same outlet. If it powers on, your outlet is good. If not, try another outlet or check your breaker.",
         "video": ""
       }
     },
     {
       "id": "fix_outlet",
-      "result": "The outlet has no power. Restore wall power or switch to a known-good outlet before proceeding.",
+      "result": "The outlet has no power. Reset your breaker, check if it's a switched outlet, or move to a known-good outlet before continuing.",
       "knowledge": {
-        "text": "Reset the breaker, turn on the switch if it’s a switched outlet, or move your PC to a confirmed working outlet.",
+        "text": "Check your electrical panel for tripped breakers. Some outlets are controlled by wall switches - make sure the switch is on. Test with a different outlet to confirm power.",
         "video": ""
       }
     },
     {
       "id": "psu_switch",
-      "question": "Verify the PSU rear switch is ON. Do fans or LEDs react?",
+      "question": "Check the PSU rear switch - is it in the ON position (I)?",
+      "requiresNotDone": ["psu_switch_on"],
+      "nextIfSkipped": "psu_cables_check",
       "options": {
-        "Yes, system now powers": { "next": "boot_success", "markChecklist": "psu_switch_on" },
-        "No, still nothing": { "next": "psu_test", "markChecklist": "psu_switch_on" }
+        "Yes, and system now powers": { "next": "boot_success", "markChecklist": "psu_switch_on" },
+        "Yes, but still nothing": { "next": "psu_cables_check", "markChecklist": "psu_switch_on" }
       },
       "knowledge": {
-        "text": "On the back of your PSU is a small rocker switch. Make sure it’s in the 'I' position, not 'O'. If your PSU has a 115V/230V selector, ensure it matches your region.",
+        "text": "On the back of your PSU is a rocker switch. Make sure it's in the 'I' (on) position, not 'O' (off). If your PSU has a 115V/230V voltage selector, ensure it matches your region: 115V for US/Canada/Japan, 230V for EU/UK/Australia.",
+        "video": ""
+      }
+    },
+    {
+      "id": "psu_cables_check",
+      "question": "Verify the 24-pin ATX and 8-pin CPU (EPS) connectors are fully seated in the motherboard.",
+      "requiresNotDone": ["mobo_24pin_seated", "cpu_8pin_seated"],
+      "nextIfSkipped": "psu_test",
+      "options": {
+        "Yes, cables are good": { "next": "psu_test", "markChecklist": ["mobo_24pin_seated", "cpu_8pin_seated"] },
+        "Reseated and it now powers": { "next": "boot_success", "markChecklist": ["mobo_24pin_seated", "cpu_8pin_seated"] }
+      },
+      "knowledge": {
+        "text": "The 24-pin ATX connector is the large one on the motherboard edge. The 8-pin EPS (sometimes 4+4 pin) plugs in near the CPU socket. Push firmly until they click into place. CRITICAL: If your PSU is modular, only use cables that came with YOUR specific PSU model - never mix cables from different PSUs.",
         "video": ""
       }
     },
     {
       "id": "psu_test",
-      "question": "Perform the PSU paperclip test or try a known-good PSU. Does the PSU turn on by itself?",
+      "question": "Perform the PSU paperclip test. Does the PSU fan spin when jumped?",
+      "requiresNotDone": ["psu_test"],
+      "nextIfSkipped": "front_panel_header",
       "options": {
-        "Yes, PSU is working": { "next": "mobo_power_connectors", "markChecklist": "psu_test" },
-        "No, PSU failed": { "next": "replace_psu", "markChecklist": "psu_test" }
+        "Yes, PSU fan spins": { "next": "front_panel_header", "markChecklist": "psu_test" },
+        "No, PSU is dead": { "next": "replace_psu", "markChecklist": "psu_test" }
       },
       "knowledge": {
-        "text": "Unplug PSU from the PC. On the 24-pin connector, short the green wire to any black wire with a bent paperclip. If the PSU fan spins, it’s alive. Or swap in a spare PSU.",
+        "text": "Unplug PSU from wall and motherboard. On the 24-pin connector, use a bent paperclip or wire to bridge the green wire to any black wire (ground). Plug PSU back into wall and flip the switch to ON. If the fan spins, the PSU can turn on by itself. If you have a spare PSU, you can swap it in instead to test.",
         "video": ""
       }
     },
     {
       "id": "replace_psu",
-      "result": "The PSU failed testing. Replace the power supply.",
+      "result": "PSU failed the paperclip test. The power supply is dead and needs to be replaced.",
       "knowledge": {
-        "text": "If the PSU does not start with the paperclip test or a tester, it’s faulty. Replace with a new unit of equal or better wattage.",
-        "video": ""
-      }
-    },
-    {
-      "id": "mobo_power_connectors",
-      "question": "Are 24-pin ATX and CPU 8-pin EPS connectors fully seated?",
-      "options": {
-        "Yes, fully seated": { "next": "front_panel_header", "markChecklist": "mobo_power_cables" },
-        "No / reseated": { "next": "try_power_on", "markChecklist": "mobo_power_cables" }
-      },
-      "knowledge": {
-        "text": "Check that the big 24-pin cable is fully inserted in the motherboard. Also check the 8-pin (sometimes 4+4) near the CPU. Push until they click. Only use the PSU’s own modular cables — never mix brands.",
+        "text": "If the PSU doesn't start during the paperclip test, it's faulty. Replace it with a quality unit that meets or exceeds your system's power requirements. Use a PSU calculator online if unsure about wattage needs.",
         "video": ""
       }
     },
     {
       "id": "front_panel_header",
-      "question": "Check case power button wiring. Try shorting PWR_SW pins directly with a screwdriver. Did the system power on?",
+      "question": "Bypass the case power button: short the PWR_SW pins on the motherboard with a screwdriver. Does it power on?",
+      "requiresNotDone": ["pwr_sw_short"],
+      "nextIfSkipped": "motherboard_short_check",
       "options": {
         "Yes, it powered on": { "next": "boot_success", "markChecklist": "pwr_sw_short" },
-        "No, still nothing": { "next": "try_power_on", "markChecklist": "pwr_sw_short" }
+        "No, still nothing": { "next": "motherboard_short_check", "markChecklist": "pwr_sw_short" }
       },
       "knowledge": {
-        "text": "Follow your motherboard manual to confirm case button wiring is correct. To bypass, tap the two PWR_SW pins with a screwdriver tip. If it powers on, the button or wiring is bad.",
+        "text": "Locate the front panel header pins (usually bottom-right of motherboard, labeled F_PANEL or JFP1). Use your motherboard manual to find the PWR_SW pins. Touch both pins briefly with a screwdriver tip. If it powers on, your case button or wiring is faulty. If not, the motherboard may not be receiving power properly.",
         "video": ""
       }
     },
     {
-      "id": "try_power_on",
-      "result": "If still nothing after all prior steps, suspect motherboard or CPU.",
-      "knowledge": {
-        "text": "If you’ve verified outlet, PSU, and power connections, but still no life, the motherboard or CPU is the most likely failure.",
-        "video": ""
-      }
-    },
-
-    {
-      "id": "power_cycles",
-      "question": "System powers on then shuts off within a few seconds. Next step: Check standoffs / shorts under the motherboard.",
+      "id": "motherboard_short_check",
+      "question": "Remove motherboard from case and test on cardboard or wood (breadboard test). Does it show any signs of life?",
+      "requiresNotDone": ["bench_test"],
+      "nextIfSkipped": "dead_mobo_cpu",
       "options": {
-        "Correct standoffs, still failing": { "next": "reset_switch_check", "markChecklist": "standoffs_ok" },
-        "Fixed an issue and it now works": { "next": "boot_success", "markChecklist": "standoffs_ok" }
+        "Yes, it powers on outside case": { "next": "standoff_issue", "markChecklist": "bench_test" },
+        "No, still completely dead": { "next": "dead_mobo_cpu", "markChecklist": "bench_test" }
       },
       "knowledge": {
-        "text": "Ensure the motherboard is screwed into standoffs, not directly touching the case. Shorts against the case can cause instant shutoff.",
+        "text": "Power off and unplug everything. Remove motherboard from case. Place it on a cardboard box or wooden surface (non-conductive). Install only CPU with cooler and 1 stick of RAM. Connect 24-pin ATX and 8-pin EPS from PSU. Short the PWR_SW pins to test. If it works outside the case, you have a short circuit inside the case.",
         "video": ""
       }
     },
     {
-      "id": "reset_switch_check",
-      "question": "Disconnect the RESET SW header (leave only PWR_SW connected). Does it still shut off?",
-      "options": {
-        "Fix: now it stays on": { "next": "boot_success" },
-        "No change": { "next": "breadboard_test" }
-      },
+      "id": "standoff_issue",
+      "result": "System works outside the case but not inside = short circuit in case. Check motherboard standoff placement and ensure no extra standoffs under the board where there are no mounting holes. Also check for loose screws between motherboard and case.",
       "knowledge": {
-        "text": "A stuck or miswired RESET switch causes instant power cycling. Pull the RESET SW plug off the front-panel header to rule it out.",
+        "text": "Only install standoffs where the motherboard has mounting holes. Extra standoffs touching the back of the PCB cause shorts. Remove all standoffs, then reinstall only the ones that align with motherboard holes. Make sure no metal is touching the back of the motherboard.",
         "video": ""
       }
     },
     {
-      "id": "breadboard_test",
-      "question": "Breadboard the system (CPU + 1 RAM stick + GPU/onboard). Does it POST?",
-      "options": {
-        "Yes, now stable": { "next": "boot_success", "markChecklist": "bench_test" },
-        "No, still failing": { "next": "cycles_deeper", "markChecklist": "bench_test" }
-      },
+      "id": "dead_mobo_cpu",
+      "result": "No power even when breadboarded = dead motherboard or CPU. Try swapping with known-good parts if available, otherwise both components need replacement.",
       "knowledge": {
-        "text": "Remove the motherboard from the case. Place it on cardboard or wood. Install only CPU, 1 stick of RAM, and GPU (if needed). Connect PSU and power pins, then try to boot.",
-        "video": ""
-      }
-    },
-    {
-      "id": "cycles_deeper",
-      "question": "Does the system stay on longer if you remove RAM or GPU?",
-      "options": {
-        "Yes, stays on longer": { "next": "ram_reseat" },
-        "No, shuts off regardless": { "next": "cpu_eps_check" }
-      },
-      "knowledge": {
-        "text": "Remove components like RAM or GPU and retry. If the system stays on longer, one of them may be faulty.",
+        "text": "If the system shows no life even outside the case with minimal components, either the motherboard or CPU (or both) are dead. These parts cannot be easily tested without spare hardware. Consider taking it to a repair shop for component testing, or replace motherboard first as it's the more common failure point.",
         "video": ""
       }
     },
 
     {
-      "id": "partial_power",
-      "question": "Fans and LEDs stay on, but no display. Any debug indicators?",
+      "id": "instant_shutdown_new_build",
+      "question": "NEW BUILD: System powers on then shuts off in less than 1 second. First check: Are motherboard standoffs installed correctly with no extras touching the board?",
+      "requiresNotDone": ["standoffs_ok"],
+      "nextIfSkipped": "instant_shutdown_cooler_check",
       "options": {
-        "Beep codes": { "next": "beep_root" },
-        "Debug LEDs": { "next": "led_root" },
-        "Debug code display": { "next": "code_root" },
-        "No indicators": { "next": "monitor_check" }
-      }
-    },
-
-    {
-      "id": "monitor_check",
-      "question": "Before we open the case: is the monitor/cable/input correct and plugged into the right port?",
-      "options": {
-        "Fixed it (I now see a display)": { "next": "boot_success" },
-        "No change": { "next": "usb_isolation" }
+        "Fixed standoff issue, now works": { "next": "boot_success", "markChecklist": "standoffs_ok" },
+        "Standoffs are correct, still shuts off": { "next": "instant_shutdown_cooler_check", "markChecklist": "standoffs_ok" }
       },
       "knowledge": {
-        "text": "1) Power the monitor on and set the correct input (HDMI/DP). 2) Try a second cable/port and, if possible, a second display. 3) If a graphics card is installed, plug the cable into the GPU outputs — not the motherboard. 4) Avoid adapters/risers for this test; some DP/HDMI adapters and riser cables are flaky.",
+        "text": "Only install standoffs where the motherboard has mounting holes. Extra standoffs or screws between the motherboard and case cause instant shorts and shutdowns. Remove all standoffs, then reinstall only the ones that align with motherboard mounting holes.",
         "video": ""
       }
     },
     {
-      "id": "usb_isolation",
-      "question": "Unplug ALL USB/peripherals (rear and front). Leave only power, monitor, and keyboard. Any change?",
+      "id": "instant_shutdown_cooler_check",
+      "question": "Is the CPU cooler properly mounted? Remove and remount the cooler, ensuring it's making contact with the CPU.",
+      "requiresNotDone": ["cooler_mounted"],
+      "nextIfSkipped": "instant_shutdown_psu_load",
       "options": {
-        "Yes, now POSTs": { "next": "boot_success" },
-        "No change": { "next": "general_post_root" }
+        "Fixed it, now stays on": { "next": "boot_success", "markChecklist": "cooler_mounted" },
+        "Still instant shutdown": { "next": "instant_shutdown_psu_load", "markChecklist": "cooler_mounted" }
       },
       "knowledge": {
-        "text": "Faulty USB devices, dongles, or a shorted front-panel USB header can block POST. Unplug everything: USB hubs, Wi-Fi dongles, external drives, card readers, printers, etc.",
+        "text": "Remove the CPU cooler. Clean off old thermal paste with isopropyl alcohol. Apply a pea-sized amount of new thermal paste to the center of the CPU. Remount the cooler, tightening screws in an X pattern evenly. Make sure the cooler's pump/fan header is plugged into CPU_FAN on the motherboard - some boards won't boot without detecting a CPU fan.",
+        "video": ""
+      }
+    },
+    {
+      "id": "instant_shutdown_psu_load",
+      "question": "PSU may be failing under load. Try a different PSU if available. Does it stay on?",
+      "options": {
+        "Yes, different PSU works": { "next": "replace_psu" },
+        "No PSU available to test / Still shuts off": { "next": "instant_shutdown_cpu_check" }
+      },
+      "knowledge": {
+        "text": "A PSU can pass the paperclip test (no load) but fail when components draw power. Borrow a PSU from another PC or friend to test. Make sure it has sufficient wattage for your components (especially GPU).",
+        "video": ""
+      }
+    },
+    {
+      "id": "instant_shutdown_cpu_check",
+      "question": "Remove all RAM and try to power on. Does it stay on longer or beep?",
+      "options": {
+        "Yes, stays on or beeps": { "next": "ram_reseat" },
+        "No, still instant shutdown": { "next": "cpu_or_mobo_short" }
+      },
+      "knowledge": {
+        "text": "Remove all RAM sticks completely. Try to power on. If the system stays on longer or beeps (no RAM detected), the RAM or CPU is the issue. If it still instantly shuts off with no RAM, it's likely a motherboard short, bad CPU installation, or PSU overload protection.",
+        "video": ""
+      }
+    },
+    {
+      "id": "cpu_or_mobo_short",
+      "result": "Instant shutdown with no RAM installed = CPU installation issue, motherboard short, or PSU protection triggering. Check CPU is seated correctly with no bent pins (Intel) or bent pads (AMD). Verify no debris under CPU. Breadboard test outside case if not already done.",
+      "knowledge": {
+        "text": "Remove CPU cooler and CPU. Inspect CPU socket pins (Intel) or CPU pins (AMD) for bent pins. Check for debris. Reseat CPU carefully, ensuring it's oriented correctly (look for triangle markers). Ensure CPU cooler backplate isn't causing board flex that shorts components.",
+        "video": ""
+      }
+    },
+
+    {
+      "id": "instant_shutdown_root",
+      "question": "System was working, now shuts off instantly. First: Disconnect the RESET switch from the motherboard header. Does it stay on?",
+      "requiresNotDone": ["reset_switch_disconnected"],
+      "nextIfSkipped": "instant_shutdown_loose_cable",
+      "options": {
+        "Yes, stays on now": { "next": "boot_success", "markChecklist": "reset_switch_disconnected" },
+        "No, still shuts off": { "next": "instant_shutdown_loose_cable", "markChecklist": "reset_switch_disconnected" }
+      },
+      "knowledge": {
+        "text": "A stuck or shorted RESET switch causes instant power cycling. Locate the front panel header (F_PANEL) on your motherboard and remove the RESET_SW connector. Leave PWR_SW connected. Try powering on. If it works, your reset button or cable is faulty.",
+        "video": ""
+      }
+    },
+    {
+      "id": "instant_shutdown_loose_cable",
+      "question": "Check all power cables are fully seated (24-pin ATX, 8-pin EPS, GPU power). Reseat everything. Does it stay on?",
+      "options": {
+        "Yes, fixed it": { "next": "boot_success", "markChecklist": ["mobo_24pin_seated", "cpu_8pin_seated", "gpu_power"] },
+        "No, still shuts off": { "next": "instant_shutdown_component_failure" }
+      },
+      "knowledge": {
+        "text": "Cables can work loose over time from vibration or case movement. Check: 24-pin ATX (main motherboard power), 8-pin EPS (CPU power near socket), PCIe 6/8-pin (GPU power if you have a graphics card). Push each connector firmly until it clicks.",
+        "video": ""
+      }
+    },
+    {
+      "id": "instant_shutdown_component_failure",
+      "question": "Disconnect all drives and remove GPU (if using integrated graphics). Does it stay on?",
+      "options": {
+        "Yes, stays on": { "next": "failed_component_isolation" },
+        "No, still instant shutdown": { "next": "psu_or_mobo_failure" }
+      },
+      "knowledge": {
+        "text": "Unplug all SATA data and power cables from drives. If you have integrated graphics, remove the dedicated GPU completely. Try booting with minimal hardware: motherboard, CPU, cooler, 1 RAM stick, PSU. If it stays on, one of the removed components is causing the shutdown.",
+        "video": ""
+      }
+    },
+    {
+      "id": "failed_component_isolation",
+      "result": "System stays on with components removed = one of those components has failed. Add them back one at a time to identify which one causes the shutdown. Most common culprits: GPU, hard drive, or a bad SATA cable.",
+      "knowledge": {
+        "text": "Power off. Add one component back at a time: first GPU, then drives one by one. Power on after each addition. When it shuts off instantly again, you've found the failed component.",
+        "video": ""
+      }
+    },
+    {
+      "id": "psu_or_mobo_failure",
+      "result": "Instant shutdown with minimal components = PSU failing under load or motherboard failure. Test with a known-good PSU first. If problem persists, motherboard needs replacement.",
+      "knowledge": {
+        "text": "A PSU can degrade over time and trigger overload protection even with normal loads. Capacitors fail, especially in cheaper units. If a different PSU doesn't fix it, the motherboard has likely failed.",
+        "video": ""
+      }
+    },
+
+    {
+      "id": "power_cycles_root",
+      "question": "System powers on then cycles/reboots repeatedly. First step: Reseat all RAM sticks. Does it POST?",
+      "requiresNotDone": ["ram_reseat"],
+      "nextIfSkipped": "power_cycles_single_stick",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_reseat" },
+        "No, still cycling": { "next": "power_cycles_single_stick", "markChecklist": "ram_reseat" }
+      },
+      "knowledge": {
+        "text": "Power off and unplug PSU. Press case power button to discharge. Open case and remove all RAM sticks - push down the clips at each end and pull straight up. Reinsert RAM firmly into the slots (usually slots A2 and B2 for dual channel) until clips snap closed. You should hear a click.",
+        "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
+      }
+    },
+    {
+      "id": "power_cycles_single_stick",
+      "question": "Try booting with a single RAM stick in slot A2 (second slot from CPU). Does it POST?",
+      "requiresNotDone": ["ram_single_stick"],
+      "nextIfSkipped": "power_cycles_cmos",
+      "options": {
+        "Yes, now POSTs": { "next": "identify_bad_ram", "markChecklist": "ram_single_stick" },
+        "No, still cycling": { "next": "power_cycles_cmos", "markChecklist": "ram_single_stick" }
+      },
+      "knowledge": {
+        "text": "Remove all RAM except one stick. Check your motherboard manual for the recommended single-stick slot (usually A2, the second slot from the CPU socket). Insert the stick firmly until it clicks. Try each RAM stick individually if this doesn't work - one may be bad.",
+        "video": ""
+      }
+    },
+    {
+      "id": "identify_bad_ram",
+      "result": "System POSTs with one stick but not all sticks = either you have a bad RAM stick or incompatible RAM configuration. Test each stick individually in slot A2 to find the bad one. If all sticks work individually, try them in pairs and check your motherboard's QVL for RAM compatibility.",
+      "knowledge": {
+        "text": "Test each stick one at a time in slot A2. Mark which ones work and which cause cycling. Bad stick(s) need replacement. If all work individually but fail together, check motherboard QVL (Qualified Vendor List) for RAM compatibility and try enabling XMP/DOCP in BIOS.",
+        "video": ""
+      }
+    },
+    {
+      "id": "power_cycles_cmos",
+      "question": "Clear CMOS and wait 3-5 minutes with system powered on (it may reboot several times during memory training). Does it eventually POST?",
+      "requiresNotDone": ["cmos_reset"],
+      "nextIfSkipped": "power_cycles_cpu_check",
+      "options": {
+        "Yes, POSTed after waiting": { "next": "boot_success", "markChecklist": "cmos_reset" },
+        "No, still cycling after 5+ minutes": { "next": "power_cycles_cpu_check", "markChecklist": "cmos_reset" }
+      },
+      "knowledge": {
+        "text": "Turn off PSU switch. Press case power button to discharge capacitors. Remove the round CMOS battery for 2 minutes (or use CLR_CMOS jumper/button per manual). Replace battery, turn on PSU, and boot. DO NOT turn off during the first 3-5 minutes - DDR5 and AM5/Intel 12th+ gen platforms take time to train memory and may reboot 2-3 times automatically. This is normal.",
+        "video": ""
+      }
+    },
+    {
+      "id": "power_cycles_cpu_check",
+      "question": "Verify CPU 8-pin EPS power cable is fully seated. Reseat if needed. Does it POST?",
+      "requiresNotDone": ["eps_cables"],
+      "nextIfSkipped": "power_cycles_deeper",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "eps_cables" },
+        "No, still cycling": { "next": "power_cycles_deeper", "markChecklist": "eps_cables" }
+      },
+      "knowledge": {
+        "text": "Locate the 8-pin (or 4+4 pin) EPS connector near the CPU socket. Push firmly until it clicks. DO NOT confuse this with PCIe 8-pin GPU power - they look similar but are keyed differently. Using the wrong cable can damage components.",
+        "video": ""
+      }
+    },
+    {
+      "id": "power_cycles_deeper",
+      "question": "Remove GPU (if using integrated graphics) and disconnect all drives. Does it stop cycling?",
+      "options": {
+        "Yes, stops cycling": { "next": "power_cycles_component_isolation" },
+        "No, still cycling": { "next": "power_cycles_final" }
+      },
+      "knowledge": {
+        "text": "Unplug all SATA cables from motherboard. If you have integrated graphics on your CPU, remove the dedicated GPU completely (unscrew from case, release PCIe latch, unplug power cables). Try booting with just CPU, RAM, and motherboard.",
+        "video": ""
+      }
+    },
+    {
+      "id": "power_cycles_component_isolation",
+      "result": "Cycling stops when GPU or drives removed = faulty GPU or drive. Add components back one at a time to identify the culprit.",
+      "knowledge": {
+        "text": "Add back one component at a time: GPU first, then drives. When cycling returns, you've found the failed component. Bad drives or GPUs drawing excessive power can cause cycling.",
+        "video": ""
+      }
+    },
+    {
+      "id": "power_cycles_final",
+      "result": "Cycling continues with minimal components = CPU compatibility issue, bent CPU pins, bad motherboard, or RAM incompatibility. Check CPU is on motherboard's supported CPU list. Inspect CPU socket/pins. Test with known-good RAM if possible. Motherboard replacement may be necessary.",
+      "knowledge": {
+        "text": "Remove CPU and inspect socket pins (Intel) or CPU pins (AMD) carefully with a flashlight. Even one bent pin causes cycling. For AMD, gently straighten bent pins with a mechanical pencil tip or credit card edge. For Intel, pins are in the socket - much harder to fix. Check motherboard's CPU support list on manufacturer website.",
+        "video": ""
+      }
+    },
+
+    {
+      "id": "fans_max_root",
+      "question": "Fans spin to maximum speed immediately. Check CPU 8-pin EPS power cable is connected and seated. Is it connected?",
+      "requiresNotDone": ["eps_cables"],
+      "nextIfSkipped": "fans_max_cooler",
+      "options": {
+        "Fixed it, now normal": { "next": "boot_success", "markChecklist": "eps_cables" },
+        "Yes it's connected, still at max": { "next": "fans_max_cooler", "markChecklist": "eps_cables" }
+      },
+      "knowledge": {
+        "text": "Fans at max speed means the motherboard cannot detect or communicate with the CPU. First check: 8-pin EPS power near the CPU socket. This is separate from the 24-pin ATX connector. Without CPU power, the board cannot initialize and runs fans at 100% as a safety measure.",
+        "video": ""
+      }
+    },
+    {
+      "id": "fans_max_cooler",
+      "question": "Is the CPU cooler properly mounted with thermal paste and plugged into CPU_FAN header?",
+      "requiresNotDone": ["cooler_mounted"],
+      "nextIfSkipped": "fans_max_cpu_reseat",
+      "options": {
+        "Fixed it": { "next": "boot_success", "markChecklist": "cooler_mounted" },
+        "Yes, still at max": { "next": "fans_max_cpu_reseat", "markChecklist": "cooler_mounted" }
+      },
+      "knowledge": {
+        "text": "Check: 1) CPU cooler fan is plugged into CPU_FAN header on motherboard (not CHA_FAN or SYS_FAN). 2) Cooler is mounted firmly with even pressure. 3) Thermal paste is applied between CPU and cooler. Some motherboards won't boot without detecting a CPU fan.",
+        "video": ""
+      }
+    },
+    {
+      "id": "fans_max_cpu_reseat",
+      "question": "Reseat the CPU. Remove cooler, inspect for bent pins or debris, reinstall CPU carefully. Does it POST?",
+      "requiresNotDone": ["cpu_reseat"],
+      "nextIfSkipped": "fans_max_bios_compatibility",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "cpu_reseat" },
+        "No, still fans at max": { "next": "fans_max_bios_compatibility", "markChecklist": "cpu_reseat" }
+      },
+      "knowledge": {
+        "text": "Remove cooler and CPU. Inspect CPU socket pins (Intel) or CPU pins (AMD) for bends. Check for debris in socket. Clean old thermal paste off CPU and cooler with isopropyl alcohol. Reinstall CPU, aligning triangle markers. Apply pea-sized thermal paste. Remount cooler.",
+        "video": ""
+      }
+    },
+    {
+      "id": "fans_max_bios_compatibility",
+      "question": "Does your motherboard need a BIOS update to support this CPU? Check manufacturer website. If board has BIOS Flashback, update BIOS now.",
+      "requiresNotDone": ["bios_flashback"],
+      "nextIfSkipped": "fans_max_dead_cpu",
+      "options": {
+        "Updated BIOS, now works": { "next": "boot_success", "markChecklist": "bios_flashback" },
+        "BIOS is compatible / No flashback available": { "next": "fans_max_dead_cpu", "markChecklist": "bios_flashback" }
+      },
+      "knowledge": {
+        "text": "Check motherboard manufacturer website for CPU support list. Newer CPUs often need BIOS updates. If your board has BIOS Flashback (USB port with button), download latest BIOS to USB drive (FAT32 format, rename per manual), plug into Flashback port, and press button for 5 seconds. Process takes 5-10 minutes - do not power off.",
+        "video": ""
+      }
+    },
+    {
+      "id": "fans_max_dead_cpu",
+      "result": "Fans at max with CPU power connected and cooler mounted = CPU not detected. Likely dead CPU, incompatible CPU, or dead motherboard. Test with known-good CPU if possible. Check motherboard's CPU compatibility list.",
+      "knowledge": {
+        "text": "If all power is connected, cooler is mounted, and BIOS is up to date, the CPU or motherboard is faulty. This requires testing with spare parts. Dead CPUs are rare but happen. More often it's bent pins or motherboard failure.",
+        "video": ""
+      }
+    },
+
+    {
+      "id": "no_display_new_build",
+      "question": "NEW BUILD with no display. Does your motherboard need a BIOS update to support this CPU? Check manufacturer website. Does it have BIOS Flashback?",
+      "requiresNotDone": ["cpu_compatibility"],
+      "nextIfSkipped": "no_display_new_build_ram",
+      "options": {
+        "Updated BIOS, now works": { "next": "boot_success", "markChecklist": ["cpu_compatibility", "bios_flashback"] },
+        "BIOS is compatible / Already updated": { "next": "no_display_new_build_ram", "markChecklist": "cpu_compatibility" }
+      },
+      "knowledge": {
+        "text": "MOST COMMON NEW BUILD ISSUE: Motherboard needs BIOS update for new CPU. Check motherboard box for 'Ryzen 5000 Ready' or similar sticker. If not present, BIOS update is needed. Use BIOS Flashback if available (USB port with button on rear I/O). Download BIOS from manufacturer site, copy to FAT32 USB drive, rename per manual, plug into flashback port, press button 5 seconds.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_new_build_ram",
+      "question": "Reseat all RAM sticks firmly until clips snap. Does it POST?",
+      "requiresNotDone": ["ram_reseat"],
+      "nextIfSkipped": "no_display_new_build_single",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_reseat" },
+        "No, still no display": { "next": "no_display_new_build_single", "markChecklist": "ram_reseat" }
+      },
+      "knowledge": {
+        "text": "RAM not fully seated is the #1 beginner mistake. Push down HARD on both ends of each stick until you hear and feel the clips snap closed on both sides. It takes more force than you think. The stick should be level and flush with the slot.",
+        "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
+      }
+    },
+    {
+      "id": "no_display_new_build_single",
+      "question": "Try one RAM stick in slot A2 (second from CPU). Does it POST?",
+      "requiresNotDone": ["ram_single_stick"],
+      "nextIfSkipped": "no_display_new_build_monitor",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_single_stick" },
+        "No, still no display": { "next": "no_display_new_build_monitor", "markChecklist": "ram_single_stick" }
+      },
+      "knowledge": {
+        "text": "Remove all RAM except one stick. Install in slot A2 (usually second from CPU - check manual). Try different sticks if first doesn't work. One stick may be DOA (dead on arrival).",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_new_build_monitor",
+      "question": "Is monitor plugged into the GPU (not motherboard) and set to correct input? Try different cable/port.",
+      "requiresNotDone": ["monitor_cable_check"],
+      "nextIfSkipped": "no_display_new_build_gpu",
+      "options": {
+        "Fixed it, see display now": { "next": "boot_success", "markChecklist": "monitor_cable_check" },
+        "Still no display": { "next": "no_display_new_build_gpu", "markChecklist": "monitor_cable_check" }
+      },
+      "knowledge": {
+        "text": "NEW BUILDER MISTAKE: If you have a graphics card installed, the motherboard video ports are DISABLED. Plug monitor cable into the GPU (the card in the PCIe slot), not the motherboard. Make sure monitor is on and set to the correct input (HDMI 1, DP, etc.). Try a different cable if possible.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_new_build_gpu",
+      "question": "Is GPU power cable (6-pin or 8-pin) connected? Is GPU firmly seated in top PCIe slot?",
+      "requiresNotDone": ["gpu_power", "gpu_reseat"],
+      "nextIfSkipped": "no_display_new_build_cmos",
+      "options": {
+        "Fixed it": { "next": "boot_success", "markChecklist": ["gpu_power", "gpu_reseat"] },
+        "Still no display": { "next": "no_display_new_build_cmos", "markChecklist": ["gpu_power", "gpu_reseat"] }
+      },
+      "knowledge": {
+        "text": "Most GPUs need PCIe power cables (6-pin, 8-pin, or 12-pin connectors on the side of the card). Make sure they're fully plugged in - some require TWO 8-pin cables. Also verify GPU is pushed all the way into the top PCIe x16 slot until the latch clicks. You may need to press firmly.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_new_build_cmos",
+      "question": "Clear CMOS and wait 3-5 minutes for memory training. Does it POST?",
+      "requiresNotDone": ["cmos_reset"],
+      "nextIfSkipped": "no_display_new_build_cpu",
+      "options": {
+        "Yes, POSTed after waiting": { "next": "boot_success", "markChecklist": "cmos_reset" },
+        "No, still no display": { "next": "no_display_new_build_cpu", "markChecklist": "cmos_reset" }
+      },
+      "knowledge": {
+        "text": "Turn off PSU switch. Remove CMOS battery for 2 minutes or use CLR_CMOS jumper/button. Replace battery and boot. WAIT 3-5 minutes without touching anything - DDR5 and new platforms reboot multiple times during memory training. This is normal. Don't power off during this time.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_new_build_cpu",
+      "question": "Remove CPU cooler and CPU. Inspect for bent pins (AMD) or socket pins (Intel). Any visible damage?",
+      "requiresNotDone": ["cpu_reseat"],
+      "nextIfSkipped": "no_display_new_build_final",
+      "options": {
+        "Found and fixed bent pins": { "next": "boot_success", "markChecklist": "cpu_reseat" },
+        "No bent pins, reinstalled carefully": { "next": "no_display_new_build_final", "markChecklist": "cpu_reseat" }
+      },
+      "knowledge": {
+        "text": "AMD CPUs have pins on the CPU - inspect the bottom with a flashlight. Intel CPUs have pins in the socket - inspect the socket. Even ONE bent pin prevents boot. AMD pins can be carefully straightened with a mechanical pencil tip or credit card edge. Intel socket pins are nearly impossible to fix - usually means RMA. Also check for debris or plastic film still covering socket.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_new_build_final",
+      "result": "New build troubleshooting exhausted. Most likely: 1) DOA (dead on arrival) motherboard, 2) DOA CPU, 3) RAM incompatibility - check motherboard QVL list, 4) All cables not connected (recheck EVERYTHING). If all cables are confirmed good, test components individually if you have spare parts, or contact retailer for RMA.",
+      "knowledge": {
+        "text": "New builds with no display after all troubleshooting usually have a DOA component. Contact your retailer within return window. Most common DOA parts in order: motherboard, RAM, CPU. Double-check one last time: CPU 8-pin power connected, GPU power connected, RAM fully seated, monitor plugged into GPU not motherboard.",
+        "video": ""
+      }
+    },
+
+    {
+      "id": "no_display_no_debug",
+      "question": "Fans spin but no display, no debug features. First: Is monitor cable plugged into the correct port and monitor set to right input?",
+      "requiresNotDone": ["monitor_cable_check"],
+      "nextIfSkipped": "no_display_usb_check",
+      "options": {
+        "Fixed it, see display now": { "next": "boot_success", "markChecklist": "monitor_cable_check" },
+        "Still no display": { "next": "no_display_usb_check", "markChecklist": "monitor_cable_check" }
+      },
+      "knowledge": {
+        "text": "If you have a dedicated GPU, plug monitor into the GPU outputs (not motherboard). If using integrated graphics, plug into motherboard. Check monitor is powered on and set to correct input (press Input/Source button on monitor). Try a different cable (HDMI/DisplayPort) and different port if available.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_usb_check",
+      "question": "Unplug ALL USB devices except keyboard (remove mice, drives, dongles, hubs, etc.). Any change?",
+      "requiresNotDone": ["usb_devices_removed"],
+      "nextIfSkipped": "no_display_ram_reseat",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "usb_devices_removed" },
+        "No change": { "next": "no_display_ram_reseat", "markChecklist": "usb_devices_removed" }
+      },
+      "knowledge": {
+        "text": "Faulty USB devices (especially front-panel USB headers, card readers, or cheap hubs) can prevent POST. Unplug everything from rear USB ports and disconnect front-panel USB header from motherboard. Leave only keyboard. If it boots, add devices back one at a time to find the culprit.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_ram_reseat",
+      "question": "Reseat all RAM sticks. Does it POST?",
+      "requiresNotDone": ["ram_reseat"],
+      "nextIfSkipped": "no_display_single_stick",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_reseat" },
+        "No, still no display": { "next": "no_display_single_stick", "markChecklist": "ram_reseat" }
+      },
+      "knowledge": {
+        "text": "Power off and unplug PSU. Remove all RAM sticks - push down clips at ends and pull straight up. Reinsert firmly until clips snap closed on both sides. Push harder than you think - they need force to fully seat.",
+        "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
+      }
+    },
+    {
+      "id": "no_display_single_stick",
+      "question": "Try one RAM stick in slot A2. Does it POST?",
+      "requiresNotDone": ["ram_single_stick"],
+      "nextIfSkipped": "no_display_cmos",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_single_stick" },
+        "No, still no display": { "next": "no_display_cmos", "markChecklist": "ram_single_stick" }
+      },
+      "knowledge": {
+        "text": "Remove all RAM except one stick. Install in slot A2 (second slot from CPU - check motherboard manual). If it doesn't work, try each stick individually - one may be bad. Also try different slots.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_cmos",
+      "question": "Clear CMOS and wait 3-5 minutes. Does it POST?",
+      "requiresNotDone": ["cmos_reset"],
+      "nextIfSkipped": "no_display_gpu_check",
+      "options": {
+        "Yes, POSTed after waiting": { "next": "boot_success", "markChecklist": "cmos_reset" },
+        "No, still no display": { "next": "no_display_gpu_check", "markChecklist": "cmos_reset" }
+      },
+      "knowledge": {
+        "text": "Turn off PSU switch. Press case button to discharge. Remove CMOS battery for 2 minutes (or use CLR_CMOS jumper/button per manual). Replace battery, turn on PSU, boot. WAIT 3-5 minutes - newer platforms take time to train memory and may reboot automatically. Don't interrupt this process.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_gpu_check",
+      "question": "Verify GPU power cables connected and GPU fully seated in top PCIe slot. Does it POST?",
+      "requiresNotDone": ["gpu_power", "gpu_reseat"],
+      "nextIfSkipped": "no_display_igpu_test",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": ["gpu_power", "gpu_reseat"] },
+        "No, still no display": { "next": "no_display_igpu_test", "markChecklist": ["gpu_power", "gpu_reseat"] }
+      },
+      "knowledge": {
+        "text": "Check GPU has PCIe power cables connected (6-pin, 8-pin, or 12-pin on side of card). Some GPUs need two cables. Push GPU firmly into top PCIe x16 slot until latch clicks. Release latch at back of slot, remove GPU, and reinstall if unsure.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_igpu_test",
+      "question": "Remove GPU and plug monitor into motherboard ports to test integrated graphics. Does it POST?",
+      "requiresGPU": "integrated",
+      "options": {
+        "Yes, iGPU works": { "next": "dead_gpu", "markChecklist": "igpu_test" },
+        "No, still no display": { "next": "no_display_cpu_check", "markChecklist": "igpu_test" }
+      },
+      "knowledge": {
+        "text": "Power off. Remove GPU completely (unscrew from case, release PCIe latch, unplug power cables). Plug monitor cable into motherboard video ports (HDMI/DP on rear I/O). This only works if your CPU has integrated graphics (Intel F-series and AMD non-G CPUs do NOT have iGPU).",
+        "video": ""
+      }
+    },
+    {
+      "id": "dead_gpu",
+      "result": "System works with integrated graphics but not with GPU = dead or incompatible GPU. Try GPU in a different PCIe slot. If still no display, GPU needs replacement or testing in another system.",
+      "knowledge": {
+        "text": "If integrated graphics works but GPU doesn't, the GPU is likely dead or not getting proper power. Verify PSU has enough wattage for GPU. Try GPU in second PCIe slot if available. Test GPU in friend's PC if possible.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_cpu_check",
+      "question": "Verify CPU 8-pin EPS power cable is fully seated near CPU socket. Does it POST?",
+      "requiresNotDone": ["eps_cables"],
+      "nextIfSkipped": "no_display_cpu_reseat",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "eps_cables" },
+        "No, still no display": { "next": "no_display_cpu_reseat", "markChecklist": "eps_cables" }
+      },
+      "knowledge": {
+        "text": "Locate 8-pin (or 4+4 pin) EPS connector near CPU socket. Push firmly until it clicks. This is separate from 24-pin ATX. Do NOT confuse with PCIe 8-pin GPU power - they look similar but are keyed differently.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_cpu_reseat",
+      "question": "Remove CPU cooler and CPU. Inspect for bent pins. Reinstall carefully. Does it POST?",
+      "requiresNotDone": ["cpu_reseat"],
+      "nextIfSkipped": "no_display_slot_rotate",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "cpu_reseat" },
+        "No, still no display": { "next": "no_display_slot_rotate", "markChecklist": "cpu_reseat" }
+      },
+      "knowledge": {
+        "text": "Remove cooler and CPU. Inspect CPU socket pins (Intel) or CPU pins (AMD) with flashlight for bends or debris. Clean off thermal paste with isopropyl alcohol. Reinstall CPU aligned properly (triangle markers). Apply new thermal paste (pea-sized). Remount cooler with even pressure.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_slot_rotate",
+      "question": "Try each RAM stick in every slot individually. Any POST?",
+      "requiresNotDone": ["ram_slot_rotate"],
+      "nextIfSkipped": "no_display_final",
+      "options": {
+        "Yes, found working combination": { "next": "boot_success", "markChecklist": "ram_slot_rotate" },
+        "No, nothing works": { "next": "no_display_final", "markChecklist": "ram_slot_rotate" }
+      },
+      "knowledge": {
+        "text": "This isolates bad RAM sticks and bad motherboard slots. Test each stick one at a time in each slot: Stick 1 in A1, A2, B1, B2. Then Stick 2 in all slots, etc. Mark which combinations work. A bad slot or stick will reveal itself.",
+        "video": ""
+      }
+    },
+    {
+      "id": "no_display_final",
+      "result": "All troubleshooting exhausted. Suspect dead motherboard, CPU, or incompatible RAM. Breadboard test outside case if not done already. Test with known-good components if available. Most likely needs motherboard or CPU replacement.",
+      "knowledge": {
+        "text": "If breadboard test was not done: remove motherboard from case, place on cardboard, install only CPU + cooler + 1 RAM + power. If still no POST, either motherboard, CPU, or RAM is dead. Without spare parts to swap test, you'll need professional diagnosis or start replacing parts (motherboard first as most common failure).",
         "video": ""
       }
     },
 
     {
       "id": "beep_root",
-      "question": "What kind of beeps?",
+      "question": "What beep pattern do you hear?",
       "options": {
-        "Memory beeps": { "next": "ram_reseat" },
-        "GPU beeps": { "next": "gpu_power_check" },
-        "CPU beeps": { "next": "cpu_eps_check" },
-        "Other / unsure": { "next": "manual_beep_table" }
+        "1 long, 2 short beeps": { "next": "beep_gpu_issue" },
+        "Continuous beeping": { "next": "beep_ram_issue" },
+        "3 beeps, pause, repeat": { "next": "beep_ram_issue" },
+        "1 long continuous beep": { "next": "beep_ram_issue" },
+        "5 short beeps": { "next": "beep_cpu_issue" },
+        "Other pattern / unsure": { "next": "beep_manual_check" }
       },
       "knowledge": {
-        "text": "Motherboard beep codes vary. Count the beeps. Long/short patterns indicate which part failed.",
+        "text": "Beep codes vary by BIOS manufacturer (AMI, Award, Phoenix). Count the beeps carefully - long vs short matters. Patterns indicate which component failed to initialize: RAM, GPU, or CPU most commonly.",
         "video": ""
       }
     },
     {
-      "id": "manual_beep_table",
-      "result": "Consult your motherboard manual’s beep code table.",
-      "knowledge": {
-        "text": "Every BIOS vendor has unique beep meanings. Check your motherboard manual or website.",
-        "video": ""
-      }
-    },
-    {
-      "id": "led_root",
-      "question": "Which debug LED stays lit?",
-      "options": {
-        "CPU LED is on": { "next": "cpu_eps_check" },
-        "DRAM LED is on": { "next": "ram_reseat" },
-        "VGA (GPU) LED is on": { "next": "gpu_power_check" },
-        "BOOT (storage) LED is on": { "next": "storage_drive_check" }
-      },
-      "knowledge": {
-        "text": "Most modern boards have small LEDs labeled CPU, DRAM, VGA, BOOT. The lit one shows the failing stage.",
-        "video": ""
-      }
-    },
-    {
-      "id": "ram_reseat",
-      "question": "Reseat all RAM sticks. Does the system POST?",
-      "options": {
-        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_reseat" },
-        "No, still no display": { "next": "general_post_root", "markChecklist": "ram_reseat" }
-      },
-      "knowledge": {
-        "text": "Remove all RAM sticks. Reinsert them firmly until the latches click. Try again.",
-        "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
-      }
-    },
-    {
-      "id": "code_root",
-      "result": "Consult motherboard manual for debug code meanings.",
-      "knowledge": {
-        "text": "If your board shows a hex code like 00 or 55, check the manual’s debug code section.",
-        "video": ""
-      }
-    },
-
-    {
-      "id": "general_post_root",
-      "question": "System powers on but no display. First step: reseat your RAM sticks. Did it POST?",
+      "id": "beep_ram_issue",
+      "question": "Beep code indicates RAM issue. Reseat all RAM sticks. Does beeping stop and system POST?",
       "requiresNotDone": ["ram_reseat"],
-      "nextIfSkipped": "ram_single_stick",
+      "nextIfSkipped": "beep_ram_single",
       "options": {
         "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_reseat" },
-        "No, still no display": { "next": "ram_single_stick", "markChecklist": "ram_reseat" }
+        "No, still beeping": { "next": "beep_ram_single", "markChecklist": "ram_reseat" }
       },
       "knowledge": {
-        "text": "Remove all RAM sticks. Reinsert them firmly until the latches click. Try again.",
+        "text": "Remove all RAM sticks and reinsert firmly until clips snap closed. Push harder than you think - they need significant force.",
         "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
       }
     },
     {
-      "id": "ram_single_stick",
+      "id": "beep_ram_single",
+      "question": "Try one RAM stick at a time in slot A2. Does it POST?",
       "requiresNotDone": ["ram_single_stick"],
-      "nextIfSkipped": "ram_slot_rotate",
-      "question": "Try booting with a single RAM stick in slot A2. Did it POST?",
+      "nextIfSkipped": "beep_ram_final",
       "options": {
-        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_single_stick" },
-        "No, still no display": { "next": "ram_slot_rotate", "markChecklist": "ram_single_stick" }
+        "Yes, found working stick": { "next": "boot_success", "markChecklist": "ram_single_stick" },
+        "No, still beeping with all sticks": { "next": "beep_ram_final", "markChecklist": "ram_single_stick" }
       },
       "knowledge": {
-        "text": "Remove all but one stick of RAM. Place it in slot A2 (second slot from CPU on most boards). Boot again.",
-        "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
-      }
-    },
-    {
-      "id": "ram_slot_rotate",
-      "requiresNotDone": ["ram_slot_rotate"],
-      "nextIfSkipped": "cmos_reset",
-      "question": "Test each RAM stick in every slot. Any POST?",
-      "options": {
-        "Yes, one worked": { "next": "boot_success", "markChecklist": "ram_slot_rotate" },
-        "No, none worked": { "next": "cmos_reset", "markChecklist": "ram_slot_rotate" }
-      },
-      "knowledge": {
-        "text": "Try each stick one at a time in each slot. This helps find a bad stick or bad slot.",
-        "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
-      }
-    },
-    {
-      "id": "cmos_reset",
-      "question": "Clear CMOS (reset BIOS settings). Does the system POST afterward?",
-      "options": {
-        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "cmos_reset" },
-        "No, still nothing": { "next": "mem_training_wait", "markChecklist": "cmos_reset" }
-      },
-      "knowledge": {
-        "text": "Turn off PSU. Press the case power button to discharge. Remove the round CMOS battery for 1–2 minutes, or move the jumper, or press the CLR_CMOS button (see manual). Replace and power on.",
+        "text": "Test each stick individually in slot A2. If one works, the others are bad. If none work, either all RAM is bad (rare) or motherboard RAM slots are faulty.",
         "video": ""
       }
     },
     {
-      "id": "mem_training_wait",
-      "question": "After clearing CMOS, did you let it sit powered on for 3–5 minutes for memory training? It may reboot several times.",
-      "options": {
-        "It POSTed after waiting": { "next": "boot_success" },
-        "Yes, waited — still nothing": { "next": "cpu_eps_check" }
-      },
+      "id": "beep_ram_final",
+      "result": "RAM beep code persists with all troubleshooting = dead motherboard RAM controller or incompatible RAM. Check motherboard QVL (Qualified Vendor List) for RAM compatibility. Test with known-good RAM if available.",
       "knowledge": {
-        "text": "AM4/AM5 and DDR5 boards often take a few minutes to train RAM after a CMOS clear. Don’t power off during this period.",
-        "video": ""
-      }
-    },
-
-    {
-      "id": "cpu_eps_check",
-      "question": "Check CPU power cables (EPS 4/8-pin near the CPU). Are they fully seated?",
-      "options": {
-        "Yes, cables are good": { "next": "bios_cpu_support", "markChecklist": "eps_cables" },
-        "No, reseated cables": { "next": "bios_cpu_support", "markChecklist": "eps_cables" }
-      },
-      "knowledge": {
-        "text": "Ensure the CPU’s 8-pin (sometimes 4+4) connector is firmly locked into the socket near the CPU. Without this, CPU won’t run. EPS and PCIe 8-pins look similar — don’t mix them.",
+        "text": "If beeping continues with known-good RAM or different RAM, the motherboard's memory controller is likely dead. Check manufacturer website for your motherboard's QVL to ensure RAM is compatible.",
         "video": ""
       }
     },
     {
-      "id": "bios_cpu_support",
-      "question": "Could your CPU require a newer BIOS for this motherboard? Does your board support BIOS Flashback?",
+      "id": "beep_gpu_issue",
+      "question": "Beep code indicates GPU issue. Is GPU power connected and card fully seated?",
+      "requiresNotDone": ["gpu_power", "gpu_reseat"],
+      "nextIfSkipped": "beep_igpu_fallback",
       "options": {
-        "I updated BIOS/Flashback and it POSTs": { "next": "boot_success" },
-        "I updated BIOS — still nothing": { "next": "cpu_reseat" },
-        "Not sure / no Flashback": { "next": "cpu_reseat" }
+        "Fixed it": { "next": "boot_success", "markChecklist": ["gpu_power", "gpu_reseat"] },
+        "Still beeping": { "next": "beep_igpu_fallback", "markChecklist": ["gpu_power", "gpu_reseat"] }
       },
       "knowledge": {
-        "text": "Newer CPUs on older boards may need a BIOS update before video output works. If your board has BIOS Flashback, you can update without a CPU/GPU. Check the manual for the exact port/file name.",
+        "text": "Check PCIe power cables are connected to GPU (6-pin, 8-pin, or 12-pin). Push GPU firmly into top PCIe x16 slot until it clicks.",
         "video": ""
       }
     },
     {
-      "id": "cpu_reseat",
-      "question": "Reseat CPU and check socket pins. Does the system POST afterward?",
+      "id": "beep_igpu_fallback",
+      "question": "Remove GPU and use integrated graphics. Does beeping stop?",
+      "requiresGPU": "integrated",
+      "options": {
+        "Yes, works with iGPU": { "next": "dead_gpu", "markChecklist": "igpu_test" },
+        "Still beeping": { "next": "beep_gpu_final", "markChecklist": "igpu_test" }
+      },
+      "knowledge": {
+        "text": "Remove GPU completely. Connect monitor to motherboard ports. Only works if CPU has integrated graphics.",
+        "video": ""
+      }
+    },
+    {
+      "id": "beep_gpu_final",
+      "result": "GPU beep code persists = dead motherboard PCIe slot or incompatible GPU. Try GPU in different PCIe slot. Test GPU in another system if possible.",
+      "knowledge": {
+        "text": "If GPU works in another PC, your motherboard's PCIe slot is dead. If GPU doesn't work anywhere, GPU is dead.",
+        "video": ""
+      }
+    },
+    {
+      "id": "beep_cpu_issue",
+      "question": "Beep code indicates CPU issue. Is CPU 8-pin EPS power connected?",
+      "requiresNotDone": ["eps_cables"],
+      "nextIfSkipped": "beep_cpu_reseat",
+      "options": {
+        "Fixed it": { "next": "boot_success", "markChecklist": "eps_cables" },
+        "Yes, still beeping": { "next": "beep_cpu_reseat", "markChecklist": "eps_cables" }
+      },
+      "knowledge": {
+        "text": "Check 8-pin EPS power near CPU socket is fully seated. Do not confuse with PCIe 8-pin GPU power.",
+        "video": ""
+      }
+    },
+    {
+      "id": "beep_cpu_reseat",
+      "question": "Reseat CPU. Inspect for bent pins. Does beeping stop?",
+      "requiresNotDone": ["cpu_reseat"],
+      "nextIfSkipped": "beep_cpu_final",
       "options": {
         "Yes, now POSTs": { "next": "boot_success", "markChecklist": "cpu_reseat" },
-        "No, still nothing": { "next": "cooler_check", "markChecklist": "cpu_reseat" }
+        "No, still beeping": { "next": "beep_cpu_final", "markChecklist": "cpu_reseat" }
       },
       "knowledge": {
-        "text": "Remove CPU cooler. Unlock socket. Carefully lift CPU, inspect pins (or pads for AMD). Reinsert aligned properly. Reapply paste and cooler.",
+        "text": "Remove cooler and CPU. Inspect socket/CPU pins for bends or debris. Reinstall CPU carefully with proper alignment.",
         "video": ""
       }
     },
     {
-      "id": "cooler_check",
-      "question": "Check CPU cooler mounting pressure. Too tight or too loose can prevent boot. Adjust and retry. Did it POST?",
-      "options": {
-        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "cooler_pressure" },
-        "No, still failing": { "next": "gpu_power_check", "markChecklist": "cooler_pressure" }
-      },
+      "id": "beep_cpu_final",
+      "result": "CPU beep code persists = dead CPU, bent pins, or dead motherboard CPU socket. Check CPU compatibility with motherboard. Test with known-good CPU if available.",
       "knowledge": {
-        "text": "A cooler that’s overtightened can warp the motherboard, while a loose cooler can stop CPU from running. Adjust screws evenly.",
-        "video": ""
-      }
-    },
-
-    {
-      "id": "gpu_power_check",
-      "question": "Verify GPU PCIe power cables are connected. Any change?",
-      "options": {
-        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "gpu_power" },
-        "No, still no display": { "next": "gpu_reseat", "markChecklist": "gpu_power" }
-      },
-      "knowledge": {
-        "text": "Check that the 6-pin, 8-pin, or 12-pin GPU power connectors are fully inserted. Some GPUs need more than one cable.",
+        "text": "CPU failures are rare. More likely: bent pins (AMD) or incompatible CPU needing BIOS update. Check motherboard's CPU support list.",
         "video": ""
       }
     },
     {
-      "id": "gpu_reseat",
-      "question": "Reseat GPU in the primary PCIe slot. Does the system POST?",
-      "options": {
-        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "gpu_reseat" },
-        "No, still nothing": { "next": "onboard_test", "markChecklist": "gpu_reseat" }
-      },
+      "id": "beep_manual_check",
+      "result": "Unrecognized beep pattern. Consult your motherboard manual's beep code table or manufacturer website. Each BIOS vendor (AMI, Award, Phoenix) has different codes.",
       "knowledge": {
-        "text": "Remove GPU by pressing down the PCIe latch at the end of the slot. Reinsert until it clicks. Reconnect power cables.",
-        "video": ""
-      }
-    },
-    {
-      "id": "onboard_test",
-      "question": "Test onboard graphics (plug monitor into motherboard). Do you get a display?",
-      "options": {
-        "Yes, onboard works": { "next": "boot_success", "markChecklist": "igpu_test" },
-        "No, still no display": { "next": "final_fail", "markChecklist": "igpu_test" }
-      },
-      "knowledge": {
-        "text": "If your CPU has integrated graphics, connect your monitor directly to the motherboard’s HDMI/DP port. Remove GPU first if unsure.",
+        "text": "Search for your motherboard model + 'beep codes' to find the specific meaning. Manual usually has a table in troubleshooting section.",
         "video": ""
       }
     },
 
     {
-      "id": "storage_drive_check",
-      "question": "Disconnect all drives to isolate the boot device. Does it POST?",
+      "id": "led_root",
+      "question": "Which debug LED is lit or stays lit the longest?",
       "options": {
-        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "drives_unplugged" },
-        "No, still failing": { "next": "final_fail", "markChecklist": "drives_unplugged" }
+        "CPU LED": { "next": "led_cpu_check" },
+        "DRAM LED": { "next": "led_ram_check" },
+        "VGA LED": { "next": "led_gpu_check" },
+        "BOOT LED": { "next": "led_boot_check" },
+        "All LEDs cycle then stop": { "next": "led_cycle_analysis" }
       },
       "knowledge": {
-        "text": "Unplug all SATA and NVMe drives except one known-good boot drive. This rules out dead drives blocking POST.",
+        "text": "Most modern boards have 4 debug LEDs labeled CPU, DRAM, VGA, BOOT. During POST, they light up in sequence. The one that stays lit indicates where POST is failing. Watch carefully - sometimes they cycle fast.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_cpu_check",
+      "question": "CPU LED is lit. Is CPU 8-pin EPS power connected?",
+      "requiresNotDone": ["eps_cables"],
+      "nextIfSkipped": "led_cpu_reseat",
+      "options": {
+        "Fixed it": { "next": "boot_success", "markChecklist": "eps_cables" },
+        "Yes, still lit": { "next": "led_cpu_reseat", "markChecklist": "eps_cables" }
+      },
+      "knowledge": {
+        "text": "CPU LED means CPU not detected. First check: 8-pin EPS power near CPU socket. This is separate from 24-pin ATX.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_cpu_reseat",
+      "question": "Reseat CPU and check for bent pins. CPU LED go off?",
+      "requiresNotDone": ["cpu_reseat"],
+      "nextIfSkipped": "led_cpu_bios",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "cpu_reseat" },
+        "No, still lit": { "next": "led_cpu_bios", "markChecklist": "cpu_reseat" }
+      },
+      "knowledge": {
+        "text": "Remove cooler and CPU. Inspect for bent pins or debris. Reinstall carefully with proper alignment.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_cpu_bios",
+      "question": "Does motherboard need BIOS update for this CPU? Try BIOS Flashback if available.",
+      "requiresNotDone": ["bios_flashback"],
+      "nextIfSkipped": "led_cpu_final",
+      "options": {
+        "Updated BIOS, now works": { "next": "boot_success", "markChecklist": "bios_flashback" },
+        "BIOS compatible / No flashback": { "next": "led_cpu_final", "markChecklist": "cpu_compatibility" }
+      },
+      "knowledge": {
+        "text": "Check motherboard website for CPU support. Download latest BIOS to FAT32 USB drive, use BIOS Flashback port and button per manual.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_cpu_final",
+      "result": "CPU LED stays lit after all checks = dead CPU, bent pins not visible, or dead motherboard. Test with known-good CPU if possible.",
+      "knowledge": {
+        "text": "CPU failures are rare. More likely bent pins or incompatibility. Without spare CPU to test, both CPU and motherboard are suspect.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_ram_check",
+      "question": "DRAM LED is lit. Reseat all RAM sticks. Does LED go off?",
+      "requiresNotDone": ["ram_reseat"],
+      "nextIfSkipped": "led_ram_single",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_reseat" },
+        "No, still lit": { "next": "led_ram_single", "markChecklist": "ram_reseat" }
+      },
+      "knowledge": {
+        "text": "DRAM LED means RAM not detected. Remove and firmly reinsert all sticks until clips snap.",
+        "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
+      }
+    },
+    {
+      "id": "led_ram_single",
+      "question": "Try one RAM stick in slot A2. Does DRAM LED go off?",
+      "requiresNotDone": ["ram_single_stick"],
+      "nextIfSkipped": "led_ram_cmos",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "ram_single_stick" },
+        "No, still lit": { "next": "led_ram_cmos", "markChecklist": "ram_single_stick" }
+      },
+      "knowledge": {
+        "text": "Test each stick individually in slot A2. One may be dead.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_ram_cmos",
+      "question": "Clear CMOS and wait 3-5 minutes. Does DRAM LED go off?",
+      "requiresNotDone": ["cmos_reset"],
+      "nextIfSkipped": "led_ram_final",
+      "options": {
+        "Yes, now POSTs": { "next": "boot_success", "markChecklist": "cmos_reset" },
+        "No, still lit": { "next": "led_ram_final", "markChecklist": "cmos_reset" }
+      },
+      "knowledge": {
+        "text": "Clear CMOS and wait - DDR5 and newer platforms take time for memory training. May reboot several times automatically.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_ram_final",
+      "result": "DRAM LED stays lit = dead RAM slots on motherboard or incompatible RAM. Check motherboard QVL for RAM compatibility. Test with known-good RAM if possible.",
+      "knowledge": {
+        "text": "If LED persists with known-good RAM, motherboard memory controller is dead.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_gpu_check",
+      "question": "VGA LED is lit. Is GPU power connected and card fully seated?",
+      "requiresNotDone": ["gpu_power", "gpu_reseat"],
+      "nextIfSkipped": "led_gpu_igpu",
+      "options": {
+        "Fixed it": { "next": "boot_success", "markChecklist": ["gpu_power", "gpu_reseat"] },
+        "Still lit": { "next": "led_gpu_igpu", "markChecklist": ["gpu_power", "gpu_reseat"] }
+      },
+      "knowledge": {
+        "text": "VGA LED means GPU not detected. Check PCIe power cables and ensure GPU is pushed fully into top PCIe slot.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_gpu_igpu",
+      "question": "Remove GPU and use integrated graphics. Does VGA LED go off?",
+      "requiresGPU": "integrated",
+      "options": {
+        "Yes, works with iGPU": { "next": "dead_gpu", "markChecklist": "igpu_test" },
+        "No, still lit / No iGPU": { "next": "led_gpu_final", "markChecklist": "igpu_test" }
+      },
+      "knowledge": {
+        "text": "Remove GPU, connect monitor to motherboard. Only works if CPU has integrated graphics.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_gpu_final",
+      "result": "VGA LED stays lit = dead GPU or dead PCIe slot. Try GPU in different slot. Test GPU in another PC if possible.",
+      "knowledge": {
+        "text": "If GPU works elsewhere, motherboard PCIe slot is bad. If GPU fails everywhere, GPU is dead.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_boot_check",
+      "question": "BOOT LED is lit. Disconnect all storage drives except boot drive. Does LED go off?",
+      "requiresNotDone": ["drives_unplugged"],
+      "nextIfSkipped": "led_boot_bios",
+      "options": {
+        "Yes, now boots": { "next": "boot_success", "markChecklist": "drives_unplugged" },
+        "No, still lit": { "next": "led_boot_bios", "markChecklist": "drives_unplugged" }
+      },
+      "knowledge": {
+        "text": "BOOT LED means system POSTed but can't find bootable drive. Unplug all SATA/NVMe drives except OS drive. Bad drives can block boot.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_boot_bios",
+      "question": "Enter BIOS (spam Del/F2 at startup) and check boot order. Is OS drive listed first?",
+      "options": {
+        "Fixed boot order, now boots": { "next": "boot_success", "markChecklist": "bios_boot_order" },
+        "Drive not detected in BIOS": { "next": "led_boot_drive_issue" }
+      },
+      "knowledge": {
+        "text": "Restart and immediately press Delete or F2 repeatedly to enter BIOS. Navigate to Boot menu. Ensure your OS drive is first in boot priority. Save and exit.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_boot_drive_issue",
+      "result": "OS drive not detected in BIOS = dead drive, loose cable, or bad M.2 slot. Check SATA data/power cables are connected. For M.2 drives, reseat in slot. Try drive in different SATA port or M.2 slot. Drive may be dead - test in another PC if possible.",
+      "knowledge": {
+        "text": "For SATA drives: check both SATA data cable (to motherboard) and SATA power cable (from PSU) are connected. For M.2 NVMe: remove screw, pull drive out, reinsert firmly, screw down. Some M.2 slots share lanes with SATA ports - check manual.",
+        "video": ""
+      }
+    },
+    {
+      "id": "led_cycle_analysis",
+      "result": "All LEDs cycle through then system POSTs = normal behavior. If you're seeing display and can enter BIOS, POST is successful. The LEDs are supposed to light up sequentially during POST.",
+      "knowledge": {
+        "text": "Debug LEDs lighting up briefly in sequence (CPU → DRAM → VGA → BOOT) is normal POST behavior. Only if one stays lit is there a problem.",
+        "video": ""
+      }
+    },
+
+    {
+      "id": "code_root",
+      "result": "Your motherboard has a debug code display showing hex codes. Common codes: 00 or FF = initialization, A0-A2 = IDE detect, 15 = pre-memory, 53-55 = memory issues, 62-66 = CPU issues, 94-99 = PCIe issues. Consult your motherboard manual's POST code table for exact meaning of the code displayed.",
+      "knowledge": {
+        "text": "The 2-digit hex code display shows where POST is failing. Write down the code and look it up in your motherboard manual (usually in back pages) or manufacturer website. If code changes rapidly, it may be proceeding normally. If stuck on one code, that's the failure point.",
         "video": ""
       }
     },
 
     {
       "id": "boot_success",
-      "result": "System POSTs successfully (you can see BIOS or a display). Issue resolved."
-    },
-    {
-      "id": "final_fail",
-      "result": "All basic troubleshooting exhausted. Suspect faulty motherboard, CPU, or GPU. Swap with known-good parts for confirmation.",
+      "result": "System is POSTing successfully! You can see BIOS or display output. If you're still having issues with booting to Windows/OS, that's a different problem (boot loader, OS corruption, or drive issues) - outside the scope of this POST diagnostic tool.",
       "knowledge": {
-        "text": "At this point, replace/test motherboard, CPU, and GPU one at a time with known-good spares.",
+        "text": "POST (Power-On Self-Test) is complete when you see BIOS screen, manufacturer logo, or any display output. If you can enter BIOS (press Del/F2 at startup), POST is working. OS boot issues are a separate troubleshooting category.",
         "video": ""
       }
     }
