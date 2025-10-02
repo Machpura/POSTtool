@@ -44,7 +44,7 @@
         "Reseated and it now powers": { "next": "boot_success", "markChecklist": ["mobo_24pin_seated", "cpu_8pin_seated"] }
       },
       "knowledge": {
-        "text": "The 24-pin ATX connector is the large one on the motherboard edge. The 8-pin EPS (sometimes 4+4 pin) plugs in near the CPU socket. Push firmly until they click into place. CRITICAL: If your PSU is modular, only use cables that came with YOUR specific PSU model - never mix cables from different PSUs.",
+        "text": "CABLE IDENTIFICATION: The 24-pin ATX is the largest connector on your motherboard (usually on the right edge). The 8-pin CPU power (EPS) is near the CPU socket at the top/top-left of the board - it's often split as 4+4 pins. CRITICAL WARNING: Do NOT use PCIe 8-pin GPU power cables for the CPU - they look similar but have different pinouts and WILL damage your motherboard. EPS cables are labeled 'CPU' or 'EPS12V' and typically have a 4+4 split. PCIe cables have 6+2 split. Push both connectors firmly until they click into place. If your PSU is modular, only use cables that came with YOUR specific PSU model - never mix cables from different PSU brands.",
         "video": ""
       }
     },
@@ -58,7 +58,7 @@
         "No, PSU is dead": { "next": "replace_psu", "markChecklist": "psu_test" }
       },
       "knowledge": {
-        "text": "Unplug PSU from wall and motherboard. On the 24-pin connector, use a bent paperclip or wire to bridge the green wire to any black wire (ground). Plug PSU back into wall and flip the switch to ON. If the fan spins, the PSU can turn on by itself. If you have a spare PSU, you can swap it in instead to test.",
+        "text": "Unplug the PSU from the wall and disconnect all cables from your PC components. Find the large 24-pin connector that normally plugs into the motherboard. Look for the ONE green wire (sometimes blue on newer PSUs) - it's usually in a specific position in the connector. If you're unsure, search '24-pin ATX pinout' online. Use a bent paperclip or wire to bridge (connect) the green wire pin to ANY black wire pin in the same connector. This tricks the PSU into thinking it's connected to a motherboard. Plug the PSU back into the wall outlet and flip the PSU's rear power switch to ON. The PSU fan should spin. If you have a spare PSU, you can swap it in instead to test.",
         "video": ""
       }
     },
@@ -80,7 +80,7 @@
         "No, still nothing": { "next": "motherboard_short_check", "markChecklist": "pwr_sw_short" }
       },
       "knowledge": {
-        "text": "Locate the front panel header pins (usually bottom-right of motherboard, labeled F_PANEL or JFP1). Use your motherboard manual to find the PWR_SW pins. Touch both pins briefly with a screwdriver tip. If it powers on, your case button or wiring is faulty. If not, the motherboard may not be receiving power properly.",
+        "text": "Find the front panel connector area on your motherboard - it's usually in the bottom-right corner, labeled F_PANEL, JFP1, PANEL1, or similar. It's a small grid of pins (usually 9 pins in a 2-row layout) with tiny labels printed on the board. Look for the TWO pins labeled PWR_SW, PWR_BTN, or PW. Use a screwdriver and touch the metal tip to BOTH pins at the same time for about 1 second - this simulates pressing the power button. This is completely safe (only 5 volts). If the system powers on, your case power button or its wiring is faulty. Check your motherboard manual if you can't locate these pins.",
         "video": ""
       }
     },
@@ -94,7 +94,7 @@
         "No, still completely dead": { "next": "dead_mobo_cpu", "markChecklist": "bench_test" }
       },
       "knowledge": {
-        "text": "Power off and unplug everything. Remove motherboard from case. Place it on a cardboard box or wooden surface (non-conductive). Install only CPU with cooler and 1 stick of RAM. Connect 24-pin ATX and 8-pin EPS from PSU. Short the PWR_SW pins to test. If it works outside the case, you have a short circuit inside the case.",
+        "text": "BREADBOARD TEST PROCEDURE: 1) Unplug PSU from wall. Press the case power button 10 times to discharge all power. 2) Remove the motherboard completely from the case. 3) Place motherboard on a CARDBOARD BOX - do NOT use the anti-static bag (the outside is conductive). 4) Install only: CPU with cooler, plug the cooler fan cable into the CPU_FAN header on the motherboard, and ONE stick of RAM in slot A2 (second slot from CPU). 5) Connect ONLY: 24-pin ATX power, 8-pin EPS CPU power, and monitor cable (to GPU if you have one, or motherboard video port if using integrated graphics). 6) Do NOT connect: USB devices, drives, extra fans, RGB controllers, or anything else. 7) Plug PSU into wall and flip PSU switch to ON. 8) Use a screwdriver to touch the two PWR_SW pins together for 1 second (see your motherboard manual for pin location). If the system powers on now, you have a short circuit inside your case.",
         "video": ""
       }
     },
@@ -139,7 +139,7 @@
         "Still instant shutdown": { "next": "instant_shutdown_psu_load", "markChecklist": "cooler_mounted" }
       },
       "knowledge": {
-        "text": "Remove the CPU cooler. Clean off old thermal paste with isopropyl alcohol. Apply a pea-sized amount of new thermal paste to the center of the CPU. Remount the cooler, tightening screws in an X pattern evenly. Make sure the cooler's pump/fan header is plugged into CPU_FAN on the motherboard - some boards won't boot without detecting a CPU fan.",
+        "text": "Remove the CPU cooler completely. IMPORTANT: Check for protective plastic film on the bottom of the cooler - it's usually clear or blue. REMOVE IT if present. Also check the top of the CPU for plastic film. Clean off any old thermal paste from both the CPU and cooler base using isopropyl alcohol (70% or higher) and a lint-free cloth or coffee filter. Let it dry for 30 seconds. Apply a small blob of thermal paste - about the size of a grain of rice or small pea - in the CENTER of the CPU's metal top. Do NOT spread it manually - the cooler's pressure will spread it when you mount it. Remount the cooler, tightening the screws in an X or star pattern (opposite corners) to distribute pressure evenly. Don't overtighten - snug is enough. Make sure the cooler's fan cable is plugged into the CPU_FAN header on the motherboard (not SYS_FAN or CHA_FAN) - some boards won't boot without detecting a CPU fan.",
         "video": ""
       }
     },
@@ -218,7 +218,7 @@
       "id": "failed_component_isolation",
       "result": "System stays on with components removed = one of those components has failed. Add them back one at a time to identify which one causes the shutdown. Most common culprits: GPU, hard drive, or a bad SATA cable.",
       "knowledge": {
-        "text": "Power off. Add one component back at a time: first GPU, then drives one by one. Power on after each addition. When it shuts off instantly again, you've found the failed component.",
+        "text": "Power off completely. Add back one component at a time: GPU first, then drives one by one. Power on after each addition. When the system shuts off instantly again, you've found the failed component. IMPORTANT: If the GPU causes instant shutdown and you recently upgraded your GPU, your PSU may not have enough wattage. High-end GPUs (RTX 4070 and above, RX 7800 XT and above) often need 750W+ PSUs. Check your GPU's recommended PSU wattage online and compare to your PSU's rating (printed on the PSU label).",
         "video": ""
       }
     },
@@ -241,7 +241,7 @@
         "No, still cycling": { "next": "power_cycles_single_stick", "markChecklist": "ram_reseat" }
       },
       "knowledge": {
-        "text": "Power off and unplug PSU. Press case power button to discharge. Open case and remove all RAM sticks - push down the clips at each end and pull straight up. Reinsert RAM firmly into the slots (usually slots A2 and B2 for dual channel) until clips snap closed. You should hear a click.",
+        "text": "Power off and unplug the PSU from the wall. Press the case power button 5-10 times to discharge remaining power. Open the case and locate your RAM sticks - they're in vertical slots next to the CPU. To remove: push down the plastic clips at BOTH ends of each RAM slot. The RAM will pop up at an angle (DDR4/DDR5) or straight up (older systems). Pull the RAM straight up and out. To install: Line up the notch in the middle of the RAM stick with the bump in the slot - they only fit one way. Place the RAM stick in the slot and push down FIRMLY on BOTH ends simultaneously. This requires MORE force than you think and the motherboard will flex slightly - this is normal. Push until you hear and feel a LOUD SNAP/CLICK on both sides. The plastic clips at the ends should automatically close and lock the RAM in place. If the clips aren't fully closed, the RAM is NOT seated - push harder. For dual-channel, use slots A2 and B2 (usually the 2nd and 4th slots from the CPU).",
         "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
       }
     },
@@ -255,7 +255,7 @@
         "No, still cycling": { "next": "power_cycles_cmos", "markChecklist": "ram_single_stick" }
       },
       "knowledge": {
-        "text": "Remove all RAM except one stick. Check your motherboard manual for the recommended single-stick slot (usually A2, the second slot from the CPU socket). Insert the stick firmly until it clicks. Try each RAM stick individually if this doesn't work - one may be bad.",
+        "text": "Remove all RAM sticks from the motherboard. Look at your RAM slots - most boards have 4 slots labeled A1, A2, B1, B2 (the labels are tiny and printed on the motherboard between the slots). If you can't find labels, count from the CPU: slot A2 is usually the SECOND slot from the CPU socket. Install ONE RAM stick in slot A2 only. Push down firmly on both ends until you hear a loud click and the clips lock closed. Try each RAM stick individually if the first one doesn't work - you might have one dead stick. Check your motherboard manual if you're unsure which slot is A2.",
         "video": ""
       }
     },
@@ -263,7 +263,10 @@
       "id": "identify_bad_ram",
       "result": "System POSTs with one stick but not all sticks = either you have a bad RAM stick or incompatible RAM configuration. Test each stick individually in slot A2 to find the bad one. If all sticks work individually, try them in pairs and check your motherboard's QVL for RAM compatibility.",
       "knowledge": {
-        "text": "Test each stick one at a time in slot A2. Mark which ones work and which cause cycling. Bad stick(s) need replacement. If all work individually but fail together, check motherboard QVL (Qualified Vendor List) for RAM compatibility and try enabling XMP/DOCP in BIOS.",
+        "text": "Test each RAM stick one at a time in slot A2. Mark which sticks work and which cause cycling. Any stick that causes cycling is bad and needs replacement. If ALL sticks work individually in A2 but the system cycles when multiple sticks are installed, you have one of these issues: 1) Bad RAM slot - try different slots (A1, B1, B2) with single sticks to find dead slots. 2) Incompatible RAM configuration - check your motherboard manufacturer's website for the QVL (Qualified Vendor List) to see if your specific RAM model is tested and approved. 3) Insufficient voltage - try enabling XMP/DOCP in BIOS or manually increasing RAM voltage slightly (consult motherboard manual).",
+        "video": ""
+      }
+    },
         "video": ""
       }
     },
@@ -271,13 +274,27 @@
       "id": "power_cycles_cmos",
       "question": "Clear CMOS and wait 3-5 minutes with system powered on (it may reboot several times during memory training). Does it eventually POST?",
       "requiresNotDone": ["cmos_reset"],
-      "nextIfSkipped": "power_cycles_cpu_check",
+      "nextIfSkipped": "power_cycles_reset_check",
       "options": {
         "Yes, POSTed after waiting": { "next": "boot_success", "markChecklist": "cmos_reset" },
-        "No, still cycling after 5+ minutes": { "next": "power_cycles_cpu_check", "markChecklist": "cmos_reset" }
+        "No, still cycling after 5+ minutes": { "next": "power_cycles_reset_check", "markChecklist": "cmos_reset" }
       },
       "knowledge": {
-        "text": "Turn off PSU switch. Press case power button to discharge capacitors. Remove the round CMOS battery for 2 minutes (or use CLR_CMOS jumper/button per manual). Replace battery, turn on PSU, and boot. DO NOT turn off during the first 3-5 minutes - DDR5 and AM5/Intel 12th+ gen platforms take time to train memory and may reboot 2-3 times automatically. This is normal.",
+        "text": "Turn off the PSU switch on the back of the power supply. Press the case power button 5-10 times to discharge any remaining power in the capacitors. Locate the round silver coin-sized battery (CR2032) on the motherboard - it's usually near the bottom center of the board. You may need to remove your GPU to access it. Press the small metal tab next to it and the battery will pop out. Wait 2 full minutes. While the battery is out, inspect it for corrosion, leaking, or damage. If the battery looks corroded or your PC is 3+ years old, replace the CMOS battery now (CR2032 batteries cost about $3). If you can't find the battery, look for a 2-pin jumper labeled CLR_CMOS or JBAT1, or a button labeled CLR_CMOS - consult your motherboard manual. After 2 minutes, replace the battery, turn on the PSU switch, and boot the system. IMPORTANT: DO NOT turn off the system for 3-5 minutes after powering on. DDR5 systems and AM5/Intel 12th gen or newer platforms perform memory training which can take several minutes and may cause the system to reboot 2-3 times automatically. This is NORMAL - do not interrupt it.",
+        "video": ""
+      }
+    },
+    {
+      "id": "power_cycles_reset_check",
+      "question": "Disconnect the RESET switch cable from the front panel header on the motherboard. Does the cycling stop?",
+      "requiresNotDone": ["reset_switch_disconnected"],
+      "nextIfSkipped": "power_cycles_cpu_check",
+      "options": {
+        "Yes, cycling stopped": { "next": "boot_success", "markChecklist": "reset_switch_disconnected" },
+        "No, still cycling": { "next": "power_cycles_cpu_check", "markChecklist": "reset_switch_disconnected" }
+      },
+      "knowledge": {
+        "text": "A stuck or shorted RESET button can cause continuous power cycling. Find the front panel header on your motherboard (usually bottom-right, labeled F_PANEL or JFP1). Look for the 2-pin connector labeled RESET_SW, RST, or RESET. Carefully pull this connector off the pins - leave the PWR_SW (power switch) connected. If the cycling stops, your case reset button is faulty or the wiring is shorted.",
         "video": ""
       }
     },
@@ -291,7 +308,7 @@
         "No, still cycling": { "next": "power_cycles_deeper", "markChecklist": "eps_cables" }
       },
       "knowledge": {
-        "text": "Locate the 8-pin (or 4+4 pin) EPS connector near the CPU socket. Push firmly until it clicks. DO NOT confuse this with PCIe 8-pin GPU power - they look similar but are keyed differently. Using the wrong cable can damage components.",
+        "text": "Locate the CPU power connector on your motherboard - it's an 8-pin (or 4+4 split) socket at the TOP or TOP-LEFT of the motherboard, very close to the CPU socket (the large square area with the cooler mounted on it). The cable coming from your PSU should be labeled 'CPU', 'EPS12V', or 'EPS' and typically has a 4+4 pin split design. Push the connector firmly into the socket until it clicks and locks in place. CRITICAL WARNING: Do NOT use PCIe 8-pin GPU power cables for this - they look very similar but have a different pinout. PCIe cables typically have a 6+2 split, while EPS cables have 4+4. Using the wrong cable type can permanently damage your motherboard. If you're unsure, check the label on the PSU end of the cable.",
         "video": ""
       }
     },
@@ -300,10 +317,22 @@
       "question": "Remove GPU (if using integrated graphics) and disconnect all drives. Does it stop cycling?",
       "options": {
         "Yes, stops cycling": { "next": "power_cycles_component_isolation" },
-        "No, still cycling": { "next": "power_cycles_final" }
+        "No, still cycling": { "next": "power_cycles_psu_test" }
       },
       "knowledge": {
         "text": "Unplug all SATA cables from motherboard. If you have integrated graphics on your CPU, remove the dedicated GPU completely (unscrew from case, release PCIe latch, unplug power cables). Try booting with just CPU, RAM, and motherboard.",
+        "video": ""
+      }
+    },
+    {
+      "id": "power_cycles_psu_test",
+      "question": "PSU may be failing under load. Try a different PSU if available. Does cycling stop?",
+      "options": {
+        "Yes, different PSU works": { "next": "replace_psu" },
+        "No PSU available / Still cycling": { "next": "power_cycles_final" }
+      },
+      "knowledge": {
+        "text": "A PSU can pass the paperclip test (no load) but fail when under load with components. The capacitors degrade over time, especially in cheaper units. If a different PSU stops the cycling, your original PSU needs replacement. Borrow one from another PC to test if possible.",
         "video": ""
       }
     },
@@ -319,7 +348,7 @@
       "id": "power_cycles_final",
       "result": "Cycling continues with minimal components = CPU compatibility issue, bent CPU pins, bad motherboard, or RAM incompatibility. Check CPU is on motherboard's supported CPU list. Inspect CPU socket/pins. Test with known-good RAM if possible. Motherboard replacement may be necessary.",
       "knowledge": {
-        "text": "Remove CPU and inspect socket pins (Intel) or CPU pins (AMD) carefully with a flashlight. Even one bent pin causes cycling. For AMD, gently straighten bent pins with a mechanical pencil tip or credit card edge. For Intel, pins are in the socket - much harder to fix. Check motherboard's CPU support list on manufacturer website.",
+        "text": "Remove the CPU cooler and CPU to inspect for damage. FOR AMD CPUs (Ryzen): The pins are on the BOTTOM of the CPU chip itself. Use a flashlight or phone light and look at the underside of the CPU. The pins should form a perfect grid pattern - all pins the same height, perfectly straight, and perpendicular to the CPU surface. Even ONE pin that's bent, angled, shorter, or touching another pin will prevent boot. Compare to online photos of a healthy AMD CPU if unsure. Bent AMD pins can sometimes be carefully straightened using a mechanical pencil tip (0.5mm) or the edge of a credit card, but this is risky. FOR INTEL CPUs (Core i-series, newer): The pins are in the MOTHERBOARD SOCKET, not on the CPU. Open the CPU socket latch and look inside the socket with a flashlight. Pins should look like a dense forest of tiny vertical needles, all perfectly straight. If any pin is bent over, pushed down, or angled, that's your problem. Intel socket pins are extremely difficult to repair - bent pins usually require socket replacement or motherboard RMA. Also check your motherboard manufacturer's CPU support list online to verify your CPU is supported without a BIOS update. If your motherboard has dual BIOS, consult the manual for BIOS recovery procedures.",
         "video": ""
       }
     },
@@ -491,7 +520,7 @@
       "id": "no_display_new_build_final",
       "result": "New build troubleshooting exhausted. Most likely: 1) DOA (dead on arrival) motherboard, 2) DOA CPU, 3) RAM incompatibility - check motherboard QVL list, 4) All cables not connected (recheck EVERYTHING). If all cables are confirmed good, test components individually if you have spare parts, or contact retailer for RMA.",
       "knowledge": {
-        "text": "New builds with no display after all troubleshooting usually have a DOA component. Contact your retailer within return window. Most common DOA parts in order: motherboard, RAM, CPU. Double-check one last time: CPU 8-pin power connected, GPU power connected, RAM fully seated, monitor plugged into GPU not motherboard.",
+        "text": "New builds with no display after all troubleshooting steps usually have a DOA (dead on arrival) component. Contact your retailer within the return window for RMA or exchange. Most common DOA parts in order of frequency: 1) Motherboard, 2) RAM, 3) CPU. FINAL VERIFICATION CHECKLIST - Double-check one last time: CPU 8-pin EPS power connected near CPU socket, 24-pin ATX power connected, RAM fully seated with clips closed on both ends, GPU power cables connected (if using dedicated GPU), monitor plugged into GPU outputs NOT motherboard (if GPU is installed), monitor turned on and set to correct input, PSU rear switch in ON (I) position, all cables fully inserted until they click. DUAL BIOS: If your motherboard has dual BIOS, consult the manual for recovery procedures. COMPATIBILITY: Verify all components are compatible - check motherboard CPU support list and RAM QVL on manufacturer website.",
         "video": ""
       }
     },
@@ -506,7 +535,7 @@
         "Still no display": { "next": "no_display_usb_check", "markChecklist": "monitor_cable_check" }
       },
       "knowledge": {
-        "text": "If you have a dedicated GPU, plug monitor into the GPU outputs (not motherboard). If using integrated graphics, plug into motherboard. Check monitor is powered on and set to correct input (press Input/Source button on monitor). Try a different cable (HDMI/DisplayPort) and different port if available.",
+        "text": "CABLE CONNECTION: If you have a dedicated graphics card (GPU) installed in a PCIe slot, your monitor cable MUST be plugged into the GPU's video outputs (HDMI/DisplayPort on the graphics card), NOT the motherboard's video ports. When a GPU is installed, the motherboard video ports are automatically disabled. If using integrated graphics only (no GPU), plug the monitor into the motherboard's video ports on the rear I/O panel. MONITOR INPUT: Monitors have multiple input sources (HDMI 1, HDMI 2, DisplayPort, DVI, VGA, etc.). Press the INPUT, SOURCE, or MENU button on your monitor (usually located on the bottom or side bezel of the monitor). Cycle through the available inputs until you see your PC's display. If the monitor shows 'No Signal,' it means either the cable is loose/unplugged or you're on the wrong input. CABLE TESTING: Try a different video cable if available (swap HDMI for DisplayPort or vice versa). Try a different video port on the GPU if it has multiple ports. Avoid using adapters or converters for this test - direct cable connections work best.",
         "video": ""
       }
     },
@@ -576,7 +605,7 @@
         "No, still no display": { "next": "no_display_igpu_test", "markChecklist": ["gpu_power", "gpu_reseat"] }
       },
       "knowledge": {
-        "text": "Check GPU has PCIe power cables connected (6-pin, 8-pin, or 12-pin on side of card). Some GPUs need two cables. Push GPU firmly into top PCIe x16 slot until latch clicks. Release latch at back of slot, remove GPU, and reinstall if unsure.",
+        "text": "GPU POWER: Look at the side or top edge of your graphics card. You'll see power connectors - either 6-pin, 8-pin (6+2 split), or 12VHPWR (12-pin for RTX 40-series). Check your GPU's specifications online - many high-end cards require TWO separate 8-pin cables from the PSU (not a single cable with two daisy-chained connectors). All power sockets on the GPU must have cables plugged in and pushed in firmly until they click. GPU RESEATING: To remove GPU: 1) Unplug all PCIe power cables from the GPU. 2) Unscrew the GPU bracket from the rear of the case (usually 1-2 screws). 3) Locate the PCIe slot latch - it's a plastic tab or lever at the END of the PCIe slot (opposite from the rear I/O). Press it down to release the GPU. 4) Pull the GPU straight up and out. To install GPU: 1) Line up the GPU's gold PCIe contacts with the top PCIe x16 slot (the longest slot, usually closest to the CPU). 2) Push down FIRMLY on both ends of the GPU simultaneously until you hear a CLICK and feel the latch automatically lock into place. The screw bracket should align with the case's rear slots. 3) Screw the GPU bracket to the case. 4) Reconnect all required PCIe power cables. The gold contacts should be fully inserted into the slot - if you can see any gold contacts, the GPU is not fully seated.",
         "video": ""
       }
     },
@@ -597,7 +626,7 @@
       "id": "dead_gpu",
       "result": "System works with integrated graphics but not with GPU = dead or incompatible GPU. Try GPU in a different PCIe slot. If still no display, GPU needs replacement or testing in another system.",
       "knowledge": {
-        "text": "If integrated graphics works but GPU doesn't, the GPU is likely dead or not getting proper power. Verify PSU has enough wattage for GPU. Try GPU in second PCIe slot if available. Test GPU in friend's PC if possible.",
+        "text": "If integrated graphics works but the GPU doesn't, troubleshoot further: 1) RISER CABLE: If you're using a PCIe riser cable or vertical GPU mount, remove it and install the GPU directly into the motherboard's PCIe slot. Riser cables frequently fail or have PCIe generation incompatibility issues (e.g., PCIe 3.0 riser with PCIe 4.0 GPU). 2) DIFFERENT SLOT: Try installing the GPU in the second PCIe x16 slot if your motherboard has one (consult manual - not all boards support GPUs in the second slot). 3) POWER: Verify your PSU has sufficient wattage for the GPU - check GPU manufacturer's recommended PSU wattage. 4) TEST IN ANOTHER PC: If possible, test the GPU in a friend's PC to determine if the GPU itself is dead. If the GPU works in another system, your motherboard's PCIe slot is likely dead.",
         "video": ""
       }
     },
@@ -647,7 +676,7 @@
       "id": "no_display_final",
       "result": "All troubleshooting exhausted. Suspect dead motherboard, CPU, or incompatible RAM. Breadboard test outside case if not done already. Test with known-good components if available. Most likely needs motherboard or CPU replacement.",
       "knowledge": {
-        "text": "If breadboard test was not done: remove motherboard from case, place on cardboard, install only CPU + cooler + 1 RAM + power. If still no POST, either motherboard, CPU, or RAM is dead. Without spare parts to swap test, you'll need professional diagnosis or start replacing parts (motherboard first as most common failure).",
+        "text": "If breadboard test was not done yet: Remove motherboard from case, place on cardboard, install only CPU + cooler + 1 RAM stick + power cables. If still no POST, either motherboard, CPU, or RAM is dead. Without spare parts to swap-test, you'll need professional diagnosis or start replacing components (motherboard first as it's the most common failure point). DUAL BIOS BOARDS: If your motherboard has dual BIOS (check your motherboard model specifications - common on Gigabyte boards), there may be a BIOS recovery procedure. Look for a physical switch on the motherboard or a specific button combination to force the board to use the backup BIOS. Consult your motherboard manual for exact dual BIOS recovery steps. RETURN/RMA: If this is a new build within the return window (usually 14-30 days), contact your retailer for returns/exchanges rather than attempting repairs.",
         "video": ""
       }
     },
@@ -809,7 +838,7 @@
         "Yes, still lit": { "next": "led_cpu_reseat", "markChecklist": "eps_cables" }
       },
       "knowledge": {
-        "text": "CPU LED means CPU not detected. First check: 8-pin EPS power near CPU socket. This is separate from 24-pin ATX.",
+        "text": "CPU LED lit means the CPU is not being detected by the motherboard. FIRST CHECK: Locate the 8-pin (or 4+4 split) EPS CPU power connector near the top of the motherboard close to the CPU socket. This is separate from the 24-pin ATX connector. Make sure this cable is fully plugged in and locked. NEW BUILD NOTE: If this is a new build and the CPU power is connected, the most common cause is BIOS incompatibility - your motherboard may need a BIOS update to support your CPU model. Check the motherboard box for a sticker like 'Ryzen 5000 Ready' or 'Intel 12th Gen Ready.' If not present, you likely need a BIOS update before the CPU will be detected.",
         "video": ""
       }
     },
@@ -859,7 +888,7 @@
         "No, still lit": { "next": "led_ram_single", "markChecklist": "ram_reseat" }
       },
       "knowledge": {
-        "text": "DRAM LED means RAM not detected. Remove and firmly reinsert all sticks until clips snap.",
+        "text": "DRAM LED lit means RAM is not being detected. Remove all RAM sticks: push down the plastic clips at both ends of each slot and pull the RAM straight up. Reinstall firmly - push down on BOTH ends simultaneously until you hear a loud CLICK and the clips automatically snap closed. The motherboard will flex - this is normal. You need more force than you think. NEW BUILD NOTE: If this is a new build and RAM is properly seated, check: 1) RAM compatibility - verify your RAM is on the motherboard's QVL (Qualified Vendor List) on the manufacturer website. 2) BIOS compatibility - some motherboards need a BIOS update to support certain RAM speeds or newer RAM models, especially DDR5. Check the motherboard box for compatibility stickers.",
         "video": "https://www.youtube-nocookie.com/embed/Umx8KylwwCA"
       }
     },
@@ -944,7 +973,7 @@
         "No, still lit": { "next": "led_boot_bios", "markChecklist": "drives_unplugged" }
       },
       "knowledge": {
-        "text": "BOOT LED means system POSTed but can't find bootable drive. Unplug all SATA/NVMe drives except OS drive. Bad drives can block boot.",
+        "text": "BOOT LED lit means the system passed POST (CPU, RAM, GPU detected successfully) but cannot find a bootable drive or boot device. Disconnect all storage: Unplug all SATA data cables from the motherboard (thin cables going to hard drives and SSDs) except your primary OS drive. For M.2 NVMe drives, remove the M.2 screw and pull out any secondary M.2 drives, leaving only your boot drive installed. Bad drives or drives with corrupted boot sectors can prevent the system from booting. IMPORTANT - M.2 LANE SHARING: Some M.2 slots share PCIe lanes with SATA ports or even the primary PCIe x16 GPU slot. Check your motherboard manual for M.2 slot restrictions. For example, using M.2_2 might disable SATA ports 5+6, or using certain M.2 slots can reduce your GPU from x16 to x8 mode. If you recently installed a second M.2 drive and now have boot issues, this could be the cause - try a different M.2 slot or remove the secondary drive.",
         "video": ""
       }
     },
@@ -956,7 +985,7 @@
         "Drive not detected in BIOS": { "next": "led_boot_drive_issue" }
       },
       "knowledge": {
-        "text": "Restart and immediately press Delete or F2 repeatedly to enter BIOS. Navigate to Boot menu. Ensure your OS drive is first in boot priority. Save and exit.",
+        "text": "Turn on or restart your PC. IMMEDIATELY when you see the first sign of power (fans spin, LEDs light up, or manufacturer logo appears), start rapidly pressing the Delete or F2 key - press it 5-10 times per second like you're frantically clicking a mouse. Do NOT stop pressing - keep spamming the key until the BIOS screen appears (it has a blue, black, or grey background with text menus). If nothing happens after 30 seconds, the PC will boot into Windows - restart and try again. If Delete/F2 doesn't work, try F12, F10, F1, or Esc instead (varies by manufacturer). Some motherboards show a splash screen briefly that says 'Press [KEY] to enter SETUP' at the bottom. Once in BIOS, navigate to the Boot menu (use arrow keys) and check if your OS drive is listed and set as first boot priority. Save and exit (usually F10 or follow on-screen prompts).",
         "video": ""
       }
     },
