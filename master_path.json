@@ -267,9 +267,6 @@
         "video": ""
       }
     },
-        "video": ""
-      }
-    },
     {
       "id": "power_cycles_cmos",
       "question": "Clear CMOS and wait 3-5 minutes with system powered on (it may reboot several times during memory training). Does it eventually POST?",
